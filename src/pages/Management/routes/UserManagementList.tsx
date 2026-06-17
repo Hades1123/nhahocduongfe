@@ -1,20 +1,16 @@
-import { api } from "@/api/api";
 import { TableColumn } from "@/components/Table/type";
 import { PencilSquareIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Tooltip } from "@mui/material";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Modal from "@/components/Modal";
-import Select from "@/components/Select";
 import Table from "@/components/Table";
 import Swal from "sweetalert2";
 import UserInformationForm from "../components/UserInformationForm";
 import Input from "@/components/Input";
 import { getLocalUserInfo } from "@/utils/storage";
-import UpdatePasswordForm from "../components/UpdatePassword";
-
-interface Props {}
+import { userApi } from "@/api/userApi";
 
 const columns: TableColumn[] = [
   {
@@ -23,27 +19,23 @@ const columns: TableColumn[] = [
   },
   {
     title: "Tài khoản",
-    dataIndex: "account",
+    dataIndex: "username",
   },
   {
     title: "Họ và tên",
-    dataIndex: "name",
+    dataIndex: "fullName",
   },
   {
-    title: "Đơn vị",
-    dataIndex: "address",
+    title: "Email",
+    dataIndex: "email",
   },
   {
-    title: "Tỉnh/Thành",
-    dataIndex: "action",
-  },
-  {
-    title: "Trường",
-    dataIndex: "action",
+    title: "Số điện thoại",
+    dataIndex: "phoneNumber",
   },
   {
     title: "Trạng thái",
-    dataIndex: "action",
+    dataIndex: "statusText",
   },
   {
     title: "Thao tác",
@@ -51,125 +43,82 @@ const columns: TableColumn[] = [
   },
 ];
 
-const UserManagementList = (props: Props) => {
+const UserManagementList = () => {
   const [curPage, setCurPage] = useState(1);
   const [totalPage, setTotalPage] = useState(0);
   const [isEdit, setIsEdit] = useState<boolean>(false);
-  const [selectedOrganization, setSelectedOrganization] = useState();
+  const [selectedUserId, setSelectedUserId] = useState<number | undefined>();
   const [isOpenForm, setIsOpenForm] = useState<boolean>(false);
-  const [isOpenUpdatePassword, setIsOpenUpdatePassword] =
-    useState<boolean>(false);
-  const [listProvince, setListProvince] = useState<any>([]);
-  const [province, setProvince] = useState<any>();
-  const [dataFetching, setDataFetching] = useState([]);
+  const [dataFetching, setDataFetching] = useState<any[]>([]);
   const [reFetching, setReFetching] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>("");
   const userInfor = getLocalUserInfo();
   const organizationType = userInfor?.organization?.type;
 
-  useEffect(() => {
-    api
-      .get("/api/organization/search?sort=updatedDate,desc")
-      .then((res) => {
+  const fetchUsers = useCallback(
+    async (page: number, search?: string) => {
+      try {
+        const res = await userApi.search({
+          page: page - 1,
+          size: 10,
+          sort: "updatedDate,desc",
+          searchText: search || undefined,
+        });
         if (res.status === 200) {
           setTotalPage(res.data.totalPages);
           setDataFetching(res.data.content);
-          setReFetching(false);
         }
-      })
-      .catch((err) => {
-        throw err;
-      });
-  }, [reFetching]);
+      } catch (err) {
+        console.error("Failed to fetch users:", err);
+      }
+    },
+    [],
+  );
 
-  const dataSource = dataFetching.map((data: any, idx) => ({
-    stt: idx + 1,
-    code: data.code,
-    name: data.name,
-    address: data.address,
+  useEffect(() => {
+    fetchUsers(curPage, searchText);
+  }, [curPage, reFetching, fetchUsers]);
+
+  const handleSearch = () => {
+    setCurPage(1);
+    fetchUsers(1, searchText);
+  };
+
+  const dataSource = dataFetching.map((data: any, idx: number) => ({
+    stt: (curPage - 1) * 10 + idx + 1,
+    username: data.username || "-",
+    fullName: `${data.lastName || ""} ${data.firstName || ""}`.trim() || "-",
+    email: data.email || "-",
+    phoneNumber: data.phoneNumber || "-",
+    statusText: data.status !== false ? "Hoạt động" : "Đã khóa",
     action: (
       <span className="flex justify-center gap-4">
         <Tooltip title="Chỉnh sửa" placement="top">
           <PencilSquareIcon
-            className="h-6 w-6"
+            className="h-6 w-6 cursor-pointer text-blue-600 hover:text-blue-800"
             onClick={() => handleUpdate(data.id)}
           />
         </Tooltip>
-        {!organizationType ? (
+        {!organizationType && (
           <Tooltip title="Xóa" placement="top">
             <XMarkIcon
-              className="h-6 w-6"
-              color="red"
-              onClick={() => handleRemoveOrganization(data.id, data.name)}
+              className="h-6 w-6 cursor-pointer text-red-600 hover:text-red-800"
+              onClick={() =>
+                handleRemoveUser(data.id, data.username)
+              }
             />
           </Tooltip>
-        ) : null}
+        )}
       </span>
     ),
   }));
 
-  function formatList(list: any) {
-    return list.map((item: any) => {
-      let result = item.name;
-      const listRemove = [
-        "Tỉnh ",
-        "Thành phố ",
-        "Thị xã ",
-        "Quận ",
-        "Huyện ",
-        "Phường ",
-        "Xã ",
-      ];
-      listRemove.map((element) => {
-        result = result.replace(element, "");
-      });
-
-      return {
-        value: result,
-        label: result,
-        item: item,
-      };
-    });
-  }
-
-  useEffect(() => {
-    api.get("/api/areas/lookup?region=SOUTH").then((result) => {
-      if (result) {
-        const list = formatList(result.data);
-        setListProvince(list);
-      }
-    });
-  }, []);
-
-  const handleSearch = (e: any) => {
-    const queryParams = new URLSearchParams();
-    if (province) {
-      queryParams.append(
-        "areaCode",
-        province?.item.code ? province?.item.code : "",
-      );
-    }
-    if (searchText) {
-      queryParams.append("searchText", searchText);
-    }
-    api
-      .get(`/api/organization/search`, { params: queryParams })
-      .then((res) => {
-        if (res.status === 200) {
-          setTotalPage(res.data.totalPages);
-          setDataFetching(res.data.content);
-        }
-      })
-      .catch((err) => {
-        throw err;
-      });
-  };
-
   const paging = () => {
-    var pageIdx = [];
+    const pageIdx = [];
     for (let i = 0; i < totalPage; i++) {
       pageIdx.push(
         <a
+          key={i}
           onClick={() => setCurPage(i + 1)}
           aria-current="page"
           className={
@@ -185,16 +134,10 @@ const UserManagementList = (props: Props) => {
     return pageIdx;
   };
 
-  useEffect(() => {
-    api.get(`/api/organization/search?page=${curPage - 1}`).then((response) => {
-      setTotalPage(response.data.totalPages);
-      setDataFetching(response.data.content);
-    });
-  }, [curPage]);
-
-  const handleRemoveOrganization = (id: any, name: string) => {
+  const handleRemoveUser = (id: number, username: string) => {
     Swal.fire({
-      html: "Bạn có muốn xoá trường học " + `<b>${name}</b>` + " không?",
+      html:
+        "Bạn có muốn xoá người dùng " + `<b>${username}</b>` + " không?",
       icon: "info",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
@@ -203,93 +146,74 @@ const UserManagementList = (props: Props) => {
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        api
-          .delete(`/api/organizations/${id}`)
+        userApi
+          .delete(id)
           .then(() => {
             Swal.fire({
               icon: "success",
-              title: "Xoá trường học thành công?",
-            }).then(() => setReFetching(true));
+              title: "Xoá người dùng thành công!",
+            }).then(() => setReFetching((prev) => !prev));
           })
           .catch(() => {
             Swal.fire({
               icon: "error",
-              title: "Xóa trường học không thành công?",
+              title: "Xóa người dùng không thành công!",
             });
           });
       }
     });
   };
 
-  const handleUpdate = (id: any) => {
-    setSelectedOrganization(id);
+  const handleUpdate = (id: number) => {
+    setSelectedUserId(id);
     setIsEdit(true);
     setIsOpenForm(true);
   };
+
+  const handleCreate = () => {
+    setSelectedUserId(undefined);
+    setIsEdit(false);
+    setIsOpenForm(true);
+  };
+
+  const handleFormSuccess = () => {
+    setIsOpenForm(false);
+    setReFetching((prev) => !prev);
+  };
+
   return (
     <>
       <Modal
         isOpen={isOpenForm}
         setIsOpen={setIsOpenForm}
-        onClose={() => setReFetching(true)}
+        onClose={() => setReFetching((prev) => !prev)}
         title={!isEdit ? "Tạo người dùng mới" : "Chỉnh sửa thông tin"}
+        width={700}
       >
         <UserInformationForm
-          organizationId={selectedOrganization}
+          userId={selectedUserId}
           isEdit={isEdit}
-          onSuccess={() => {
-            setIsOpenForm(false);
-            setReFetching(true);
-          }}
+          onSuccess={handleFormSuccess}
         />
       </Modal>
-      <Modal
-        isOpen={isOpenUpdatePassword}
-        setIsOpen={setIsOpenUpdatePassword}
-        onClose={() => setReFetching(true)}
-        title={"Đặt lại mật khẩu"}
-        width={500}
-      >
-        <UpdatePasswordForm
-          organizationId={selectedOrganization}
-          isEdit={isEdit}
-          onSuccess={() => {
-            setIsOpenUpdatePassword(false);
-            // setReFetching(true);
-          }}
-        />
-      </Modal>
+
       <div className="flex flex-col gap-8">
         {!organizationType ? (
           <>
-            {/* <div className="grid grid-cols-4 gap-4">
-              <Select
-                label="Tỉnh/Thành"
-                placeholder="Chọn tỉnh/thành"
-                options={listProvince}
-                value={province}
-                onChange={(e) => setProvince(e)}
-              />
-            </div> */}
             <div className="grid grid-cols-2">
               <div className="flex gap-3">
                 <Input
-                  placeholder="Nhập tên trường/ mã trường"
+                  placeholder="Nhập tài khoản, họ tên, email, SĐT"
+                  value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSearch();
+                  }}
                 />
                 <Button onClick={handleSearch}>Tìm kiếm</Button>
               </div>
               <div className="flex justify-end">
-                <Button
-                  onClick={() => {
-                    setSelectedOrganization(undefined);
-                    setIsEdit(false);
-                    setIsOpenForm(true);
-                    // setIsOpenUpdatePassword(true);
-                  }}
-                >
-                  Tạo mới người dùng
-                </Button>
+                <Button onClick={handleCreate}>Tạo mới người dùng</Button>
               </div>
             </div>
           </>
@@ -297,8 +221,9 @@ const UserManagementList = (props: Props) => {
         <Card>
           <Table columns={columns} dataSource={dataSource} />
         </Card>
-        {/* paging */}
-        {!organizationType ? (
+
+        {/* Pagination */}
+        {!organizationType && totalPage > 1 && (
           <div className="flex cursor-pointer items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
             <div className="flex flex-1 justify-between sm:hidden">
               <a
@@ -338,9 +263,9 @@ const UserManagementList = (props: Props) => {
                       aria-hidden="true"
                     >
                       <path
-                        fill-rule="evenodd"
+                        fillRule="evenodd"
                         d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-                        clip-rule="evenodd"
+                        clipRule="evenodd"
                       />
                     </svg>
                   </a>
@@ -359,9 +284,9 @@ const UserManagementList = (props: Props) => {
                       aria-hidden="true"
                     >
                       <path
-                        fill-rule="evenodd"
+                        fillRule="evenodd"
                         d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                        clip-rule="evenodd"
+                        clipRule="evenodd"
                       />
                     </svg>
                   </a>
@@ -369,11 +294,10 @@ const UserManagementList = (props: Props) => {
               </div>
             </div>
           </div>
-        ) : null}
-
-        {/* end paging */}
+        )}
       </div>
     </>
   );
 };
+
 export default UserManagementList;

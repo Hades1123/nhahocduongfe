@@ -7,19 +7,27 @@ export interface IOrganization {
 }
 
 export interface IUserInformation {
+  id?: number;
   username: string;
-  name: string;
-  company: string;
-  province: string;
-  school: string;
   password: string;
   rePassword: string;
-  areaCode: string;
-  classes: any;
-  inputClassName: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  birthDate: string;
+  organizationId: number | null;
+  roleIds: number[];
 }
 
 export interface IUpdatePassword {
   password: string;
   rePassword: string;
+}
+
+export interface IRole {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
 }

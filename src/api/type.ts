@@ -1,10 +1,21 @@
 export interface IUser {
-  name: string;
+  id: number;
+  username: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  role: string;
-  id: string;
-  createdAt: string;
-  updatedAt: string;
+  phoneNumber: string;
+  birthDate: string;
+  status: boolean;
+  organization?: {
+    id: number;
+    name: string;
+  };
+  roleList?: {
+    id: string;
+    code: string;
+    name: string;
+  }[];
 }
 
 export interface GenericResponse {

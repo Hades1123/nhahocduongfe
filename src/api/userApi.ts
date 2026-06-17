@@ -1,0 +1,77 @@
+import { api } from "./api";
+import { IUserInformation, IRole } from "@/pages/Management/type";
+
+export interface UserSearchParams {
+  searchText?: string;
+  page?: number;
+  size?: number;
+  sort?: string;
+}
+
+export interface PageResponse<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
+}
+
+export const userApi = {
+  /** Tạo user mới — gọi POST /api/user/register */
+  create: (data: Omit<IUserInformation, "id" | "rePassword">) => {
+    const payload = {
+      username: data.username,
+      password: data.password,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      phoneNumber: data.phoneNumber,
+      birthDate: data.birthDate || null,
+      organization: data.organizationId ? { id: data.organizationId } : null,
+      roleList: data.roleIds?.length
+        ? data.roleIds.map((id) => ({ id: String(id) }))
+        : [],
+    };
+    return api.post("/api/user/register", payload);
+  },
+
+  /** Lấy danh sách user có phân trang + search */
+  search: (params: UserSearchParams) => {
+    const queryParams = new URLSearchParams();
+    if (params.searchText) queryParams.append("searchText", params.searchText);
+    if (params.page !== undefined) queryParams.append("page", String(params.page));
+    if (params.size !== undefined) queryParams.append("size", String(params.size));
+    if (params.sort) queryParams.append("sort", params.sort);
+    return api.get<PageResponse<any>>(`/api/user/search?${queryParams.toString()}`);
+  },
+
+  /** Lấy user theo ID */
+  getById: (id: number) => api.get(`/api/user/${id}`),
+
+  /** Cập nhật user */
+  update: (id: number, data: Partial<IUserInformation>) => {
+    const payload: any = {};
+    if (data.username) payload.username = data.username;
+    if (data.password) payload.password = data.password;
+    if (data.firstName) payload.firstName = data.firstName;
+    if (data.lastName) payload.lastName = data.lastName;
+    if (data.email) payload.email = data.email;
+    if (data.phoneNumber) payload.phoneNumber = data.phoneNumber;
+    if (data.birthDate) payload.birthDate = data.birthDate;
+    if (data.organizationId !== undefined) {
+      payload.organization = data.organizationId
+        ? { id: data.organizationId }
+        : null;
+    }
+    if (data.roleIds?.length) {
+      payload.roleList = data.roleIds.map((rid) => ({ id: String(rid) }));
+    }
+    return api.put(`/api/user/${id}`, payload);
+  },
+
+  /** Xóa user (soft delete — set status = false) */
+  delete: (id: number) => api.delete(`/api/user/${id}`),
+
+  /** Lấy danh sách roles */
+  getRoles: () => api.get<IRole[]>("/api/roles"),
+};
