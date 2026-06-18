@@ -1,6 +1,7 @@
 import { slugs } from "@/constants/slugs";
 import Login from "@/pages/Login";
 import Logout from "@/pages/Logout";
+import Signup from "@/pages/Signup";
 import React from "react";
 import { Navigate, useRoutes } from "react-router-dom";
 
@@ -17,6 +18,10 @@ const PublicRoutes = ({
     {
       path: slugs.login,
       element: <Login />,
+    },
+    {
+      path: slugs.signup,
+      element: <Signup />,
     },
     {
       path: slugs.logout,

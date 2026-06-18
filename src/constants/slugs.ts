@@ -2,6 +2,7 @@ const slugs = {
   // --PUBLIC--
   // Login
   login: "/login",
+  signup: "/signup",
   logout: "/logout",
   // --PROTECTED--
   home: "/",

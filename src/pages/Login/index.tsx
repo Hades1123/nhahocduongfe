@@ -142,6 +142,18 @@ const Login = (props: Props) => {
             >
               Đăng nhập
             </Button>
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <span className="text-base text-gray-600">
+                Bạn chưa có tài khoản?
+              </span>
+              <button
+                type="button"
+                onClick={() => navigate("/signup")}
+                className="text-base font-semibold text-indigo-600 hover:text-indigo-700 underline cursor-pointer"
+              >
+                Đăng ký tại đây
+              </button>
+            </div>
           </div>
         </div>
       </div>
