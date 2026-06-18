@@ -1,3 +1,4 @@
+import { useState, useEffect, isValidElement } from 'react';
 import { TableColumn } from './type';
 
 interface TableProps {
@@ -6,52 +7,203 @@ interface TableProps {
   dataSource?: any[];
   onColumnClick?: any;
 }
-export default function Table({ columns, dataSource, onColumnClick }: TableProps) {
+
+/** Chevron icon that rotates when expanded */
+function ChevronIcon({ expanded }: { expanded: boolean }) {
   return (
-    <div className="flow-root">
-      <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-          <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-            <table className="min-w-full cursor-pointer divide-y divide-gray-300">
-              <thead className="bg-indigo-500 text-center text-white">
-                <tr>
-                  {columns?.map((column, index) => (
-                    <>
-                      <th
-                        key={index}
-                        scope="col"
-                        className="py-3.5 pl-4 pr-3 text-center text-sm font-semibold sm:pl-6"
-                      >
-                        {column.title}
-                      </th>
-                    </>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 bg-white text-center">
-                {dataSource?.map((item, index) => (
-                  <tr
-                    key={index}
-                    className="even:bg-gray-50 hover:bg-gray-100"
-                    onClick={(e) => onColumnClick && onColumnClick(item)}
-                  >
-                    {columns?.map((column, index) => {
-                      return (
-                        <td
-                          key={column.key ? column.key : index}
-                          className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6"
+    <svg
+      className={`h-5 w-5 shrink-0 text-gray-400 transition-transform duration-200 ${
+        expanded ? 'rotate-180' : ''
+      }`}
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+    >
+      <path
+        fillRule="evenodd"
+        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+/**
+ * Detect if a column is an "action" column.
+ * Priority: explicit `isAction` flag → column title contains action-related keywords → value is JSX
+ */
+function isActionColumn(column: TableColumn, sampleValue?: any): boolean {
+  if (column.isAction) return true;
+  const title = typeof column.title === 'string' ? column.title.toLowerCase() : '';
+  if (['thao tác', 'action', 'handle', ''].includes(title) && isValidElement(sampleValue)) return true;
+  return false;
+}
+
+export default function Table({ columns, dataSource, onColumnClick }: TableProps) {
+  const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+
+  // Default all cards to expanded
+  useEffect(() => {
+    if (dataSource?.length) {
+      setExpandedCards(new Set(dataSource.map((_, i) => i)));
+    }
+  }, [dataSource?.length]);
+
+  const toggleCard = (index: number) => {
+    setExpandedCards((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  };
+
+  // Split columns into data columns and action columns
+  const sampleItem = dataSource?.[0];
+  const dataColumns = columns?.filter((col) => !isActionColumn(col, sampleItem?.[col.dataIndex])) ?? [];
+  const actionColumns = columns?.filter((col) => isActionColumn(col, sampleItem?.[col.dataIndex])) ?? [];
+
+  // For the card header, use the first two data columns (typically STT + name/code)
+  const headerColumns = dataColumns.slice(0, 2);
+  const detailColumns = dataColumns.slice(2);
+
+  return (
+    <>
+      {/* ═══════════════ DESKTOP TABLE (≥1024px) ═══════════════ */}
+      <div className="hidden lg:block flow-root">
+        <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+          <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+              <table className="min-w-full cursor-pointer divide-y divide-gray-300">
+                <thead className="bg-indigo-500 text-center text-white">
+                  <tr>
+                    {columns?.map((column, index) => (
+                      <>
+                        <th
+                          key={index}
+                          scope="col"
+                          className="py-3.5 pl-4 pr-3 text-center text-sm font-semibold sm:pl-6"
                         >
-                          {item[column.dataIndex]}
-                        </td>
-                      );
-                    })}
+                          {column.title}
+                        </th>
+                      </>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-200 bg-white text-center">
+                  {dataSource?.map((item, index) => (
+                    <tr
+                      key={index}
+                      className="even:bg-gray-50 hover:bg-gray-100"
+                      onClick={(e) => onColumnClick && onColumnClick(item)}
+                    >
+                      {columns?.map((column, index) => {
+                        return (
+                          <td
+                            key={column.key ? column.key : index}
+                            className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6"
+                          >
+                            {item[column.dataIndex]}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* ═══════════════ TABLET & MOBILE CARDS (<1024px) ═══════════════ */}
+      <div className="lg:hidden flex flex-col gap-3">
+        {dataSource?.map((item, rowIndex) => {
+          const isExpanded = expandedCards.has(rowIndex);
+
+          return (
+            <div
+              key={rowIndex}
+              className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+            >
+              {/* ── Card Header (always visible) ── */}
+              <button
+                type="button"
+                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-inset"
+                onClick={() => toggleCard(rowIndex)}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  {/* STT badge */}
+                  {headerColumns[0] && (
+                    <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">
+                      {item[headerColumns[0].dataIndex]}
+                    </span>
+                  )}
+                  {/* Primary identifier */}
+                  {headerColumns[1] && (
+                    <span className="truncate text-sm font-semibold text-gray-900">
+                      {item[headerColumns[1].dataIndex]}
+                    </span>
+                  )}
+                </div>
+                <ChevronIcon expanded={isExpanded} />
+              </button>
+
+              {/* ── Expandable Details ── */}
+              <div
+                className={`transition-all duration-200 ease-in-out ${
+                  isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+                } overflow-hidden`}
+              >
+                <div className="border-t border-gray-100 px-4 py-3">
+                  {/* All detail columns as label-value pairs */}
+                  <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {detailColumns.map((col, colIdx) => (
+                      <div key={colIdx} className="flex flex-col py-1">
+                        <dt className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                          {col.title}
+                        </dt>
+                        <dd className="mt-0.5 text-sm text-gray-900 break-words">
+                          {item[col.dataIndex] ?? '—'}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+
+                  {/* Action buttons */}
+                  {actionColumns.length > 0 && (
+                    <div className="mt-3 flex items-center gap-3 border-t border-gray-100 pt-3">
+                      {actionColumns.map((col, colIdx) => (
+                        <div key={colIdx} onClick={(e) => e.stopPropagation()}>
+                          {item[col.dataIndex]}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Row click action */}
+                  {onColumnClick && (
+                    <button
+                      type="button"
+                      className="mt-3 w-full rounded-md bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-100 transition-colors"
+                      onClick={() => onColumnClick(item)}
+                    >
+                      Xem chi tiết →
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Empty state */}
+        {(!dataSource || dataSource.length === 0) && (
+          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 text-center text-sm text-gray-500">
+            Không có dữ liệu
+          </div>
+        )}
+      </div>
+    </>
   );
 }

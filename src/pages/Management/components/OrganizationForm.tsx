@@ -351,59 +351,118 @@ const OrganizationForm = ({
             </Button>
           </div>
 
-          <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 650 }} aria-label="caption table">
-              <caption>* Các lớp được thêm sẽ hiển thị ở đây.</caption>
-              <TableHead>
-                <TableRow>
-                  <TableCell style={{ width: "150px" }} align="center">
-                    Khối
-                  </TableCell>
-                  <TableCell align="center" style={{ width: "150px" }}>
-                    Danh sách lớp
-                  </TableCell>
-                  <TableCell align="center" style={{ width: "150px" }}>
-                    Thao tác
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {Object.keys(formik.values?.classes || {}).map(
-                  (row, rowIndex) => (
-                    <TableRow key={rowIndex}>
-                      <TableCell style={{ width: "150px" }} align="center">
-                        {row}
-                      </TableCell>
-                      <TableCell align="center">
-                        <CustomMuiChipsInput
-                          className="text-sm"
-                          value={formik.values.classes[row as any]}
-                          placeholder="Nhập tên lớp..."
-                          hideClearAll={true}
-                          onChange={(values) => handleChange(values)}
-                          onDeleteChip={(value) => handleDeleteChip(value, row)}
-                          onAddChip={(value) => handleAddChip(value, row)}
-                        />
-                      </TableCell>
-                      <TableCell align="center" style={{ width: "150px" }}>
-                        <Button
-                          onClick={(value) =>
-                            handleDeleteAllClasses(
-                              { ...formik.values.classes },
-                              row,
-                            )
-                          }
-                          variants="outlined"
-                        >
-                          <CloseIcon />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ),
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          {/* ═══ DESKTOP TABLE (≥1024px) ═══ */}
+          <div className="hidden lg:block">
+            <TableContainer component={Paper}>
+              <Table sx={{ minWidth: 650 }} aria-label="caption table">
+                <caption>* Các lớp được thêm sẽ hiển thị ở đây.</caption>
+                <TableHead>
+                  <TableRow>
+                    <TableCell style={{ width: "150px" }} align="center">
+                      Khối
+                    </TableCell>
+                    <TableCell align="center" style={{ width: "150px" }}>
+                      Danh sách lớp
+                    </TableCell>
+                    <TableCell align="center" style={{ width: "150px" }}>
+                      Thao tác
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {Object.keys(formik.values?.classes || {}).map(
+                    (row, rowIndex) => (
+                      <TableRow key={rowIndex}>
+                        <TableCell style={{ width: "150px" }} align="center">
+                          {row}
+                        </TableCell>
+                        <TableCell align="center">
+                          <CustomMuiChipsInput
+                            className="text-sm"
+                            value={formik.values.classes[row as any]}
+                            placeholder="Nhập tên lớp..."
+                            hideClearAll={true}
+                            onChange={(values) => handleChange(values)}
+                            onDeleteChip={(value) => handleDeleteChip(value, row)}
+                            onAddChip={(value) => handleAddChip(value, row)}
+                          />
+                        </TableCell>
+                        <TableCell align="center" style={{ width: "150px" }}>
+                          <Button
+                            onClick={(value) =>
+                              handleDeleteAllClasses(
+                                { ...formik.values.classes },
+                                row,
+                              )
+                            }
+                            variants="outlined"
+                          >
+                            <CloseIcon />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ),
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </div>
+
+          {/* ═══ TABLET & MOBILE CARDS (<1024px) ═══ */}
+          <div className="lg:hidden flex flex-col gap-3">
+            <p className="text-xs text-gray-500 italic">* Các lớp được thêm sẽ hiển thị ở đây.</p>
+            {Object.keys(formik.values?.classes || {}).length === 0 && (
+              <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-6 text-center text-sm text-gray-500">
+                Chưa có khối nào
+              </div>
+            )}
+            {Object.keys(formik.values?.classes || {}).map(
+              (row, rowIndex) => (
+                <div
+                  key={rowIndex}
+                  className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+                >
+                  {/* Card Header */}
+                  <div className="flex items-center justify-between bg-gray-50 px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">
+                        {rowIndex + 1}
+                      </span>
+                      <span className="text-sm font-semibold text-gray-900">
+                        Khối {row}
+                      </span>
+                    </div>
+                    <Button
+                      onClick={(value: any) =>
+                        handleDeleteAllClasses(
+                          { ...formik.values.classes },
+                          row,
+                        )
+                      }
+                      variants="outlined"
+                    >
+                      <CloseIcon />
+                    </Button>
+                  </div>
+                  {/* Card Body */}
+                  <div className="px-4 py-3">
+                    <p className="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Danh sách lớp
+                    </p>
+                    <CustomMuiChipsInput
+                      className="text-sm"
+                      value={formik.values.classes[row as any]}
+                      placeholder="Nhập tên lớp..."
+                      hideClearAll={true}
+                      onChange={(values) => handleChange(values)}
+                      onDeleteChip={(value) => handleDeleteChip(value, row)}
+                      onAddChip={(value) => handleAddChip(value, row)}
+                    />
+                  </div>
+                </div>
+              ),
+            )}
+          </div>
         </Card>
       </div>
 
