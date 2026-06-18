@@ -224,7 +224,7 @@ const PatientList = (props: Props) => {
   }
 
   useEffect(() => {
-    api.get("/api/areas/lookup?region=SOUTH").then((result) => {
+    api.get('/api/areas/lookup?region=SOUTH').then((result) => {
       if (result) {
         const list = formatList(result.data);
         setListProvince(list);

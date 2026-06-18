@@ -7,17 +7,7 @@ import Card from "@/components/Card";
 import Table from "@/components/Table";
 import Swal from "sweetalert2";
 import Input from "@/components/Input";
-
-interface RegistrationRequest {
-  id: number;
-  username: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber: string;
-  registrationDate: string;
-  status: "pending" | "approved" | "rejected";
-}
+import { userApi } from "@/api/userApi";
 
 const columns: TableColumn[] = [
   {
@@ -42,7 +32,7 @@ const columns: TableColumn[] = [
   },
   {
     title: "Ngày đăng ký",
-    dataIndex: "registrationDate",
+    dataIndex: "createdDate",
   },
   {
     title: "Thao tác",
@@ -50,103 +40,59 @@ const columns: TableColumn[] = [
   },
 ];
 
-// Mock data
-const mockRegistrationData: RegistrationRequest[] = [
-  {
-    id: 1,
-    username: "nguyenvana",
-    firstName: "A",
-    lastName: "Nguyễn Văn",
-    email: "nguyenvana@example.com",
-    phoneNumber: "0901234567",
-    registrationDate: "2024-06-15",
-    status: "pending",
-  },
-  {
-    id: 2,
-    username: "tranThixyz",
-    firstName: "Xây",
-    lastName: "Trần Thị",
-    email: "tranthixyz@example.com",
-    phoneNumber: "0987654321",
-    registrationDate: "2024-06-14",
-    status: "pending",
-  },
-  {
-    id: 3,
-    username: "phambao123",
-    firstName: "Báo",
-    lastName: "Phạm",
-    email: "phambao@example.com",
-    phoneNumber: "0912345678",
-    registrationDate: "2024-06-13",
-    status: "pending",
-  },
-  {
-    id: 4,
-    username: "hoangminh456",
-    firstName: "Minh",
-    lastName: "Hoàng",
-    email: "hoangminh456@example.com",
-    phoneNumber: "0923456789",
-    registrationDate: "2024-06-12",
-    status: "pending",
-  },
-  {
-    id: 5,
-    username: "dothikieu",
-    firstName: "Kiều",
-    lastName: "Đỗ Thị",
-    email: "dothikieu@example.com",
-    phoneNumber: "0934567890",
-    registrationDate: "2024-06-11",
-    status: "pending",
-  },
-];
-
 const AccountRegistrationList = () => {
   const [curPage, setCurPage] = useState(1);
   const [totalPage, setTotalPage] = useState(0);
-  const [dataFetching, setDataFetching] = useState<RegistrationRequest[]>([]);
+  const [dataFetching, setDataFetching] = useState<any[]>([]);
+  const [allData, setAllData] = useState<any[]>([]);
   const [searchText, setSearchText] = useState<string>("");
   const [reFetching, setReFetching] = useState<boolean>(false);
+  const itemsPerPage = 10;
 
-  // Simulate fetching data
-  const fetchRegistrations = useCallback((page: number, search?: string) => {
-    // Filter by search text
-    let filtered = mockRegistrationData;
-    if (search) {
-      filtered = mockRegistrationData.filter(
-        (item) =>
-          item.username.toLowerCase().includes(search.toLowerCase()) ||
-          `${item.lastName} ${item.firstName}`
-            .toLowerCase()
-            .includes(search.toLowerCase()) ||
-          item.email.toLowerCase().includes(search.toLowerCase()) ||
-          item.phoneNumber.includes(search),
-      );
+  // Fetch waiting users from API
+  const fetchRegistrations = useCallback(async () => {
+    try {
+      const response = await userApi.getWaitingUsers();
+      const users = response.data || [];
+      setAllData(users);
+    } catch (err) {
+      console.error("Failed to fetch waiting users:", err);
+      setAllData([]);
     }
-
-    // Filter only pending registrations
-    filtered = filtered.filter((item) => item.status === "pending");
-
-    // Calculate pagination
-    const itemsPerPage = 10;
-    const total = Math.ceil(filtered.length / itemsPerPage);
-    setTotalPage(total);
-
-    const start = (page - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    setDataFetching(filtered.slice(start, end));
   }, []);
 
   useEffect(() => {
-    fetchRegistrations(curPage, searchText);
-  }, [curPage, reFetching, fetchRegistrations, searchText]);
+    fetchRegistrations();
+  }, [reFetching, fetchRegistrations]);
+
+  // Filter + paginate locally
+  useEffect(() => {
+    let filtered = allData;
+
+    // Search filter
+    if (searchText) {
+      filtered = allData.filter(
+        (item: any) =>
+          (item.username || "").toLowerCase().includes(searchText.toLowerCase()) ||
+          `${item.lastName || ""} ${item.firstName || ""}`
+            .trim()
+            .toLowerCase()
+            .includes(searchText.toLowerCase()) ||
+          (item.email || "").toLowerCase().includes(searchText.toLowerCase()) ||
+          (item.phoneNumber || "").includes(searchText),
+      );
+    }
+
+    const total = Math.ceil(filtered.length / itemsPerPage);
+    setTotalPage(total);
+
+    const start = (curPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    setDataFetching(filtered.slice(start, end));
+  }, [allData, searchText, curPage]);
 
   const handleSearch = () => {
     setCurPage(1);
-    fetchRegistrations(1, searchText);
   };
 
   const handleApprove = (id: number, username: string) => {
@@ -160,27 +106,27 @@ const AccountRegistrationList = () => {
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        // Simulate API call
-        setTimeout(() => {
-          // Update mock data
-          const updatedData = mockRegistrationData.map((item) =>
-            item.id === id ? { ...item, status: "approved" } : item,
-          );
-          // In real app, this would come from API
-          Swal.fire({
-            icon: "success",
-            title: "Duyệt tài khoản thành công!",
-          }).then(() => {
-            setReFetching((prev) => !prev);
+        userApi
+          .approve(id)
+          .then(() => {
+            Swal.fire({
+              icon: "success",
+              title: "Duyệt tài khoản thành công!",
+            }).then(() => setReFetching((prev) => !prev));
+          })
+          .catch(() => {
+            Swal.fire({
+              icon: "error",
+              title: "Duyệt tài khoản thất bại!",
+            });
           });
-        }, 500);
       }
     });
   };
 
   const handleReject = (id: number, username: string) => {
     Swal.fire({
-      html: "Bạn có muốn từ chối tài khoản " + `<b>${username}</b>` + " không?",
+      html: "Bạn có muốn từ chối và xóa tài khoản " + `<b>${username}</b>` + " không?",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#dc2626",
@@ -189,27 +135,42 @@ const AccountRegistrationList = () => {
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        // Simulate API call
-        setTimeout(() => {
-          Swal.fire({
-            icon: "success",
-            title: "Từ chối tài khoản thành công!",
-          }).then(() => {
-            setReFetching((prev) => !prev);
+        userApi
+          .reject(id)
+          .then(() => {
+            Swal.fire({
+              icon: "success",
+              title: "Từ chối và xóa tài khoản thành công!",
+            }).then(() => setReFetching((prev) => !prev));
+          })
+          .catch(() => {
+            Swal.fire({
+              icon: "error",
+              title: "Từ chối tài khoản thất bại!",
+            });
           });
-        }, 500);
       }
     });
   };
 
+  const formatDate = (dateStr: string | null | undefined) => {
+    if (!dateStr) return "-";
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString("vi-VN");
+    } catch {
+      return dateStr;
+    }
+  };
+
   const dataSource = dataFetching.map(
-    (data: RegistrationRequest, idx: number) => ({
-      stt: (curPage - 1) * 10 + idx + 1,
+    (data: any, idx: number) => ({
+      stt: (curPage - 1) * itemsPerPage + idx + 1,
       username: data.username || "-",
       fullName: `${data.lastName || ""} ${data.firstName || ""}`.trim() || "-",
       email: data.email || "-",
       phoneNumber: data.phoneNumber || "-",
-      registrationDate: data.registrationDate || "-",
+      createdDate: formatDate(data.createdDate),
       action: (
         <span className="flex justify-center gap-4">
           <Tooltip title="Duyệt" placement="top">

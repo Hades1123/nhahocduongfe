@@ -74,4 +74,13 @@ export const userApi = {
 
   /** Lấy danh sách roles */
   getRoles: () => api.get<IRole[]>("/api/roles"),
+
+  /** Lấy danh sách user đang chờ duyệt */
+  getWaitingUsers: () => api.get<any[]>("/api/user/waiting"),
+
+  /** Admin duyệt tài khoản */
+  approve: (id: number) => api.put(`/api/user/${id}/approve`),
+
+  /** Admin từ chối + xóa tài khoản */
+  reject: (id: number) => api.delete(`/api/user/${id}/reject`),
 };
