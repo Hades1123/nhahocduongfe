@@ -345,6 +345,7 @@ const PatientCreate = (props: Props) => {
               ) : (
                 <>
                   <div className=" grid grid-cols-4 gap-8">
+                    console.log("provinces =", provinces);
                     <Select
                       label="Tỉnh/ Thành"
                       options={provinces}
@@ -352,7 +353,12 @@ const PatientCreate = (props: Props) => {
                       value={formik.values.addressLine}
                       getOptionLabel={(option) => option.name}
                       name="addressLine"
-                      onChange={(value) => formik.setFieldValue('addressLine', value)}
+                      // onChange={(value) => formik.setFieldValue('addressLine', value)}
+                      onChange={(value) => {
+                        console.log("===========");
+                        console.log("selected province =", value);
+                        formik.setFieldValue("addressLine", value);
+                      }}
                       required
                       error={formik.touched.addressLine ? formik.errors.addressLine : ''}
                     />

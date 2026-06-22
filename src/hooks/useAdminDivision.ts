@@ -21,10 +21,40 @@ export default function useAdminDivision(
     });
   }, []);
   useEffect(() => {
+    // if (listProvince.length > 0 && province) {
+    //   const provinceIndex = listProvince.findIndex(
+    //     (item: any) => item.value === province.value,
+    //   );
+    useEffect(() => {
+    console.log("province =", province);
+    console.log("listProvince =", listProvince);
+
     if (listProvince.length > 0 && province) {
       const provinceIndex = listProvince.findIndex(
         (item: any) => item.value === province.value,
       );
+
+      console.log("province.value =", province?.value);
+      console.log("provinceIndex =", provinceIndex);
+
+      if (provinceIndex > -1) {
+        const url = "/p/" + listProvince[provinceIndex].item.code + "?depth=2";
+
+        console.log("Calling API:", url);
+
+        API_PROVINCE.get(url).then((result) => {
+          console.log("API result =", result);
+
+          if (result) {
+            const list = formatList(result.data.districts);
+            setListDistrict(list);
+
+            if (listDistrict.length > 0) setDistrict("");
+          }
+        });
+      }
+    }
+  }, [province, listProvince]);
       if (provinceIndex > -1) {
         const url = "/p/" + listProvince[provinceIndex].item.code + "?depth=2";
         API_PROVINCE.get(url).then((result) => {
