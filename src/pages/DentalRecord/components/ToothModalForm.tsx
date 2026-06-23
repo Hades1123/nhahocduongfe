@@ -93,7 +93,7 @@ const ToothModal = ({
         setIsOpen={setIsOpen}
         title={`Tình trạng răng số ${toothNumber}`}
       >
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-8 sm:px-6">
           <div className="flex flex-col gap-4">
             <h1 className="font-bold">1. Tình trạng răng</h1>
             <div className="grid grid-cols-2 gap-8">

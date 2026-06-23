@@ -98,7 +98,7 @@ const LoginLogsList = () => {
   };
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 sm:px-6">
       <Card>
         <Table columns={columns} dataSource={dataSource} />
       </Card>

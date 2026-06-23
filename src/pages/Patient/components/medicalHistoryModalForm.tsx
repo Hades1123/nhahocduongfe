@@ -67,7 +67,7 @@ const MedicalHistoryModal = ({
     <>
       <Modal isOpen={isOpen} setIsOpen={setIsOpen} title="Tiền sử bệnh">
         <form>
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-8 sm:px-6 ">
             <div className="flex flex-col gap-4">
               <Card>
                 <h1 className="font-bold">I. Bệnh mãn tính</h1>

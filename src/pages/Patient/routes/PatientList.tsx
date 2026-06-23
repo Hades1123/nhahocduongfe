@@ -489,7 +489,7 @@ const PatientList = (props: Props) => {
   };
 
   return (
-    <div className="mt-5 flex flex-col gap-5 ">
+    <div className="mt-5 flex flex-col gap-5 sm:px-6 ">
       <div className="grid grid-cols-4 gap-4">
         {!organizationType ? (
           <>

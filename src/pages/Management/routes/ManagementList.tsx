@@ -230,7 +230,7 @@ const ManagementList = (props: Props) => {
           />
         </Modal>
       )}
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-8 sm:px-6">
         {!organizationType ? (
           <>
             <div className="grid grid-cols-4 gap-4">
