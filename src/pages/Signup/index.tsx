@@ -4,7 +4,6 @@ import bg from "@/assets/bg.svg";
 import logo from "@/assets/logo/logo.png";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
-import Select from "@/components/Select";
 import { IUserInformation, IRole } from "@/pages/Management/type";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useFormik } from "formik";
@@ -97,7 +96,8 @@ const Signup = () => {
         Swal.fire({
           icon: "error",
           title: "Đăng ký thất bại",
-          text: err?.response?.data?.message || "Tài khoản hoặc email đã tồn tại",
+          text:
+            err?.response?.data?.message || "Tài khoản hoặc email đã tồn tại",
         });
       } finally {
         setIsLoading(false);
@@ -124,7 +124,7 @@ const Signup = () => {
         </div>
 
         {/* Right side - Signup Form */}
-        <div className="col-span-5 flex flex-col items-center justify-center gap-6 bg-white overflow-y-auto py-8">
+        <div className="col-span-5 flex flex-col items-center justify-center gap-6 overflow-y-auto bg-white py-8">
           <div className="flex flex-col items-center gap-4">
             <img src={logo} className="w-40" />
             <h1 className="text-3xl font-bold uppercase text-indigo-600">
@@ -261,18 +261,18 @@ const Signup = () => {
             <Button
               isDisabled={!isEmpty(errors) || !dirty || isLoading}
               type="submit"
-              className="h-12 text-base mt-2"
+              className="mt-2 h-12 text-base"
             >
               {isLoading ? "Đang đăng ký..." : "Đăng ký"}
             </Button>
 
             {/* Back to Login */}
-            <div className="flex items-center justify-center gap-2 mt-2">
+            <div className="mt-2 flex items-center justify-center gap-2">
               <span className="text-sm text-gray-600">Đã có tài khoản?</span>
               <button
                 type="button"
                 onClick={() => navigate("/login")}
-                className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 underline cursor-pointer"
+                className="cursor-pointer text-sm font-semibold text-indigo-600 underline hover:text-indigo-700"
               >
                 Đăng nhập tại đây
               </button>

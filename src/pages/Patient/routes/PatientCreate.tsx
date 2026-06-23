@@ -1,42 +1,42 @@
-import Button from '@/components/Button';
-import Card from '@/components/Card';
-import Input from '@/components/Input';
-import RadioButton from '@/components/RadioButton';
-import Select from '@/components/Select';
-import { useFormik } from 'formik';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import MedicalHistoryModal from '../components/medicalHistoryModalForm';
-import { PatientType } from '../type';
-import { api } from '@/api/api';
-import { slugs } from '@/constants/slugs';
-import Swal from 'sweetalert2';
-import * as Yup from 'yup';
-import { useQuery } from 'react-query';
-import { getLocalUserInfo } from '@/utils/storage';
+import Button from "@/components/Button";
+import Card from "@/components/Card";
+import Input from "@/components/Input";
+import RadioButton from "@/components/RadioButton";
+import Select from "@/components/Select";
+import { useFormik } from "formik";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import MedicalHistoryModal from "../components/medicalHistoryModalForm";
+import { PatientType } from "../type";
+import { api } from "@/api/api";
+import { slugs } from "@/constants/slugs";
+import Swal from "sweetalert2";
+import * as Yup from "yup";
+import { useQuery } from "react-query";
+import { getLocalUserInfo } from "@/utils/storage";
 
 interface Props {}
 
 const genders = {
   option: [
-    { value: '1', label: 'Nam' },
-    { value: '2', label: 'Nữ' },
+    { value: "1", label: "Nam" },
+    { value: "2", label: "Nữ" },
   ],
 };
 
 const places = [
-  { value: 0, label: 'Thành thị' },
-  { value: 1, label: 'Ngoại ô' },
-  { value: 2, label: 'Nông thôn' },
+  { value: 0, label: "Thành thị" },
+  { value: 1, label: "Ngoại ô" },
+  { value: 2, label: "Nông thôn" },
 ];
 
 const ethnicity = [
-  { value: 0, label: 'Kinh' },
-  { value: 1, label: 'Tày' },
-  { value: 2, label: 'Nùng' },
-  { value: 3, label: 'Chăm' },
-  { value: 4, label: 'Khơme' },
-  { value: 5, label: 'Khác' },
+  { value: 0, label: "Kinh" },
+  { value: 1, label: "Tày" },
+  { value: 2, label: "Nùng" },
+  { value: 3, label: "Chăm" },
+  { value: 4, label: "Khơme" },
+  { value: 5, label: "Khác" },
 ];
 
 type Ethnic = {
@@ -45,43 +45,48 @@ type Ethnic = {
 };
 
 const PatientCreate = (props: Props) => {
-  const [isOpenMedicalHistoryModal, setIsOpenMedicalHistoryModal] = useState<boolean>(false);
+  const [isOpenMedicalHistoryModal, setIsOpenMedicalHistoryModal] =
+    useState<boolean>(false);
   const [chronicConditions, setChronicConditions] = useState<any>([]);
   const navigate = useNavigate();
   const userInfor = getLocalUserInfo();
   const organizationType = userInfor?.organization?.type;
 
   const getProvincesFetcher = async () => {
-    return await api.get('/api/areas/lookup?region=SOUTH').then((result) => {
+    return await api.get("/api/areas/lookup?region=SOUTH").then((result) => {
       return result.data;
     });
   };
 
-  const { data: provinces } = useQuery('getProvincesFetcher', getProvincesFetcher, {
-    refetchOnWindowFocus: false,
-  });
+  const { data: provinces } = useQuery(
+    "getProvincesFetcher",
+    getProvincesFetcher,
+    {
+      refetchOnWindowFocus: false,
+    },
+  );
 
   const patientInfoSchema = Yup.object().shape({
-    fullName: Yup.string().required('Vui lòng nhập tên'),
-    gender: Yup.number().required('Vui lòng chọn giới tính'),
-    birthDate: Yup.string().required('Vui lòng nhập ngày sinh'),
-    addressLine: Yup.object().required('Vui lòng chọn Tỉnh/ Thành'),
-    organization: Yup.object().required('Vui lòng chọn trường học'),
-    schoolClass: Yup.string().required('Vui lòng chọn lớp'),
+    fullName: Yup.string().required("Vui lòng nhập tên"),
+    gender: Yup.number().required("Vui lòng chọn giới tính"),
+    birthDate: Yup.string().required("Vui lòng nhập ngày sinh"),
+    addressLine: Yup.object().required("Vui lòng chọn Tỉnh/ Thành"),
+    organization: Yup.object().required("Vui lòng chọn trường học"),
+    schoolClass: Yup.string().required("Vui lòng chọn lớp"),
   });
 
   const patientInfoSchemaForAccount = Yup.object().shape({
-    fullName: Yup.string().required('Vui lòng nhập tên'),
-    gender: Yup.number().required('Vui lòng chọn giới tính'),
-    birthDate: Yup.string().required('Vui lòng nhập ngày sinh'),
-    schoolClass: Yup.string().required('Vui lòng chọn lớp'),
+    fullName: Yup.string().required("Vui lòng nhập tên"),
+    gender: Yup.number().required("Vui lòng chọn giới tính"),
+    birthDate: Yup.string().required("Vui lòng nhập ngày sinh"),
+    schoolClass: Yup.string().required("Vui lòng chọn lớp"),
   });
 
   const initialValues: PatientType = {
-    fullName: '',
+    fullName: "",
     birthDate: undefined,
     gender: undefined,
-    healthInsuranceNumber: '',
+    healthInsuranceNumber: "",
     ethnic: undefined,
     areaType: undefined,
     chronicConditions: undefined,
@@ -95,7 +100,9 @@ const PatientCreate = (props: Props) => {
 
   const formik = useFormik({
     initialValues: initialValues,
-    validationSchema: !organizationType ? patientInfoSchema : patientInfoSchemaForAccount,
+    validationSchema: !organizationType
+      ? patientInfoSchema
+      : patientInfoSchemaForAccount,
     onSubmit: (values) => {
       const chronic = chronicConditions.map((item: any) => ({
         id: item,
@@ -105,44 +112,47 @@ const PatientCreate = (props: Props) => {
         fullName: values.fullName,
         birthDate: values.birthDate,
         gender: values.gender,
-        healthInsuranceNumber: values.healthInsuranceNumber || '',
+        healthInsuranceNumber: values.healthInsuranceNumber || "",
         ethnic: values.ethnic?.value,
-        areaType: values?.areaType?.label || '',
+        areaType: values?.areaType?.label || "",
         chronicConditions: chronic?.length > 0 ? chronic : null,
         organization: values.organization?.id
           ? { id: values.organization?.id }
           : { id: userInfor.organization?.id },
-        schoolClass: values.schoolClass || '',
-        phoneNumber: '09090901234',
+        schoolClass: values.schoolClass || "",
+        phoneNumber: "09090901234",
         addressLine: values.addressLine?.name
           ? values.addressLine.name
           : userInfor.organization.address,
-        careTaker: values.careTaker || '',
-        nationalIdNum: values.nationalIdNum || '',
+        careTaker: values.careTaker || "",
+        nationalIdNum: values.nationalIdNum || "",
       };
       Swal.fire({
-        html: 'Bạn có muốn thêm học sinh ' + `<b>${formik.values.fullName}</b>` + ' không?',
-        icon: 'info',
+        html:
+          "Bạn có muốn thêm học sinh " +
+          `<b>${formik.values.fullName}</b>` +
+          " không?",
+        icon: "info",
         showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        confirmButtonText: 'Thêm',
-        cancelButtonText: 'Huỷ',
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "Thêm",
+        cancelButtonText: "Huỷ",
         reverseButtons: true,
       }).then((response) => {
         if (response.isConfirmed) {
           api
-            .post('/api/patient', submitData)
+            .post("/api/patient", submitData)
             .then(() =>
               Swal.fire({
-                icon: 'success',
-                title: 'Thêm học sinh thành công!',
-              }).then(() => navigate(slugs.patients))
+                icon: "success",
+                title: "Thêm học sinh thành công!",
+              }).then(() => navigate(slugs.patients)),
             )
             .catch(() =>
               Swal.fire({
-                icon: 'error',
-                title: 'Thêm học sinh không thành công!',
-              })
+                icon: "error",
+                title: "Thêm học sinh không thành công!",
+              }),
             );
         }
       });
@@ -156,13 +166,15 @@ const PatientCreate = (props: Props) => {
 
       if (!code) return [];
 
-      const url = code ? `/api/organization/search?areaCode=${code}` : '/api/organization/search';
+      const url = code
+        ? `/api/organization/search?areaCode=${code}`
+        : "/api/organization/search";
       return api.get(url).then((response) => {
         if (code) return response.data.content;
         return response.data.content;
       });
     },
-    { refetchOnWindowFocus: false }
+    { refetchOnWindowFocus: false },
   );
 
   function flattenObject(obj: any) {
@@ -183,17 +195,17 @@ const PatientCreate = (props: Props) => {
 
   useEffect(() => {
     if (formik.values.addressLine) {
-      formik.setFieldValue('organization', null);
+      formik.setFieldValue("organization", null);
     }
   }, [formik.values.addressLine]);
 
   const handleBack = () => {
     Swal.fire({
-      html: 'Bạn có muốn quay lại màn hình chính không?',
+      html: "Bạn có muốn quay lại màn hình chính không?",
       showCancelButton: true,
       focusConfirm: false,
-      confirmButtonText: 'Quay lại',
-      cancelButtonText: 'Hủy',
+      confirmButtonText: "Quay lại",
+      cancelButtonText: "Hủy",
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
@@ -227,7 +239,10 @@ const PatientCreate = (props: Props) => {
                   </svg>
                 </span>
                 <div className="mb-2 flex w-44 flex-col justify-center gap-2">
-                  <Button variants="outlined" onClick={() => setIsOpenMedicalHistoryModal(true)}>
+                  <Button
+                    variants="outlined"
+                    onClick={() => setIsOpenMedicalHistoryModal(true)}
+                  >
                     Tiền sử bệnh
                   </Button>
                 </div>
@@ -242,7 +257,7 @@ const PatientCreate = (props: Props) => {
                   value={formik.values.fullName}
                   onChange={formik.handleChange}
                   name="fullName"
-                  error={formik.touched.fullName ? formik.errors.fullName : ''}
+                  error={formik.touched.fullName ? formik.errors.fullName : ""}
                   required
                 />
                 <Input
@@ -251,7 +266,9 @@ const PatientCreate = (props: Props) => {
                   value={formik.values.birthDate}
                   onChange={formik.handleChange}
                   name="birthDate"
-                  error={formik.touched.birthDate ? formik.errors.birthDate : ''}
+                  error={
+                    formik.touched.birthDate ? formik.errors.birthDate : ""
+                  }
                   required
                 />
                 <div className="relative grid grid-cols-1 gap-4 text-sm font-semibold">
@@ -265,7 +282,9 @@ const PatientCreate = (props: Props) => {
                         label={gender.label}
                         value={gender.value}
                         name="gender"
-                        onClick={(value) => formik.setFieldValue('gender', value.target.value)}
+                        onClick={(value) =>
+                          formik.setFieldValue("gender", value.target.value)
+                        }
                         checked={String(formik.values?.gender) === gender.value}
                         id={gender.value}
                         key={gender.value}
@@ -292,9 +311,15 @@ const PatientCreate = (props: Props) => {
                       getOptionLabel={(option) => option}
                       value={formik.values.schoolClass}
                       name="schoolClass"
-                      onChange={(value) => formik.setFieldValue('schoolClass', value)}
+                      onChange={(value) =>
+                        formik.setFieldValue("schoolClass", value)
+                      }
                       required
-                      error={formik.touched.schoolClass ? formik.errors.schoolClass : ''}
+                      error={
+                        formik.touched.schoolClass
+                          ? formik.errors.schoolClass
+                          : ""
+                      }
                     />
                     <Select
                       label="Vùng địa dư"
@@ -302,7 +327,9 @@ const PatientCreate = (props: Props) => {
                       options={places}
                       placeholder="Chọn vùng địa dư"
                       value={formik.values.areaType}
-                      onChange={(value) => formik.setFieldValue('areaType', value)}
+                      onChange={(value) =>
+                        formik.setFieldValue("areaType", value)
+                      }
                     />
                     <Input
                       label="Mã định danh"
@@ -317,7 +344,9 @@ const PatientCreate = (props: Props) => {
                         name="ethnic"
                         placeholder="Chọn dân tộc"
                         value={formik.values.ethnic}
-                        onChange={(value) => formik.setFieldValue('ethnic', value)}
+                        onChange={(value) =>
+                          formik.setFieldValue("ethnic", value)
+                        }
                       />
                       {formik.errors.ethnic && (
                         <span className="absolute text-sm text-red-600">
@@ -345,7 +374,6 @@ const PatientCreate = (props: Props) => {
               ) : (
                 <>
                   <div className=" grid grid-cols-4 gap-8">
-                    console.log("provinces =", provinces);
                     <Select
                       label="Tỉnh/ Thành"
                       options={provinces}
@@ -360,7 +388,11 @@ const PatientCreate = (props: Props) => {
                         formik.setFieldValue("addressLine", value);
                       }}
                       required
-                      error={formik.touched.addressLine ? formik.errors.addressLine : ''}
+                      error={
+                        formik.touched.addressLine
+                          ? formik.errors.addressLine
+                          : ""
+                      }
                     />
                     <Select
                       label="Trường học"
@@ -371,21 +403,33 @@ const PatientCreate = (props: Props) => {
                       value={formik.values.organization}
                       name="organization"
                       onChange={(value) => {
-                        formik.setFieldValue('organization', value);
+                        formik.setFieldValue("organization", value);
                       }}
                       required
-                      error={formik.touched.organization ? formik.errors.organization : ''}
+                      error={
+                        formik.touched.organization
+                          ? formik.errors.organization
+                          : ""
+                      }
                     />
                     <Select
                       label="Lớp"
                       placeholder="Chọn lớp"
-                      options={flattenObject(formik.values.organization?.classes)}
+                      options={flattenObject(
+                        formik.values.organization?.classes,
+                      )}
                       getOptionLabel={(option) => option}
                       value={formik.values.schoolClass}
                       name="schoolClass"
-                      onChange={(value) => formik.setFieldValue('schoolClass', value)}
+                      onChange={(value) =>
+                        formik.setFieldValue("schoolClass", value)
+                      }
                       required
-                      error={formik.touched.schoolClass ? formik.errors.schoolClass : ''}
+                      error={
+                        formik.touched.schoolClass
+                          ? formik.errors.schoolClass
+                          : ""
+                      }
                     />
                     <Select
                       label="Vùng địa dư"
@@ -393,7 +437,9 @@ const PatientCreate = (props: Props) => {
                       options={places}
                       placeholder="Chọn vùng địa dư"
                       value={formik.values.areaType}
-                      onChange={(value) => formik.setFieldValue('areaType', value)}
+                      onChange={(value) =>
+                        formik.setFieldValue("areaType", value)
+                      }
                     />
                   </div>
                   <div className=" grid grid-cols-4 gap-8"></div>
@@ -411,7 +457,9 @@ const PatientCreate = (props: Props) => {
                         name="ethnic"
                         placeholder="Chọn dân tộc"
                         value={formik.values.ethnic}
-                        onChange={(value) => formik.setFieldValue('ethnic', value)}
+                        onChange={(value) =>
+                          formik.setFieldValue("ethnic", value)
+                        }
                       />
                       {formik.errors.ethnic && (
                         <span className="absolute text-sm text-red-600">

@@ -39,11 +39,27 @@ export const userApi = {
   search: (params: UserSearchParams) => {
     const queryParams = new URLSearchParams();
     if (params.searchText) queryParams.append("searchText", params.searchText);
-    if (params.page !== undefined) queryParams.append("page", String(params.page));
-    if (params.size !== undefined) queryParams.append("size", String(params.size));
+    if (params.page !== undefined)
+      queryParams.append("page", String(params.page));
+    if (params.size !== undefined)
+      queryParams.append("size", String(params.size));
     if (params.sort) queryParams.append("sort", params.sort);
-    return api.get<PageResponse<any>>(`/api/user/search?${queryParams.toString()}`);
+    return api.get<PageResponse<any>>(
+      `/api/user/search?${queryParams.toString()}`,
+    );
   },
+
+  /** Lấy tất cả user */
+  getAll: () => api.get<any[]>("/api/admin/users"),
+
+  /** Khóa user */
+  lock: (id: number) => api.put(`/api/admin/users/${id}/lock`),
+
+  /** Mở khóa user */
+  unlock: (id: number) => api.put(`/api/admin/users/${id}/unlock`),
+
+  /** Lấy danh sách nhật ký đăng nhập */
+  getLoginLogs: () => api.get<any[]>("/api/admin/login-logs"),
 
   /** Lấy user theo ID */
   getById: (id: number) => api.get(`/api/user/${id}`),

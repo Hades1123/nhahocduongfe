@@ -1,5 +1,9 @@
 import { TableColumn } from "@/components/Table/type";
-import { PencilSquareIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  PencilSquareIcon,
+  LockClosedIcon,
+  LockOpenIcon,
+} from "@heroicons/react/24/outline";
 import { useEffect, useState, useCallback } from "react";
 import { Tooltip } from "@mui/material";
 import Button from "@/components/Button";
@@ -55,25 +59,30 @@ const UserManagementList = () => {
   const userInfor = getLocalUserInfo();
   const organizationType = userInfor?.organization?.type;
 
-  const fetchUsers = useCallback(
-    async (page: number, search?: string) => {
-      try {
-        const res = await userApi.search({
-          page: page - 1,
-          size: 10,
-          sort: "updatedDate,desc",
-          searchText: search || undefined,
-        });
-        if (res.status === 200) {
-          setTotalPage(res.data.totalPages);
-          setDataFetching(res.data.content);
+  const fetchUsers = useCallback(async (page: number, search?: string) => {
+    try {
+      const res = await userApi.getAll();
+      if (res.status === 200) {
+        let data = res.data;
+        if (search) {
+          const s = search.toLowerCase();
+          data = data.filter(
+            (u: any) =>
+              (u.username || "").toLowerCase().includes(s) ||
+              (u.email || "").toLowerCase().includes(s) ||
+              (u.phoneNumber || "").toLowerCase().includes(s) ||
+              `${u.lastName || ""} ${u.firstName || ""}`
+                .toLowerCase()
+                .includes(s),
+          );
         }
-      } catch (err) {
-        console.error("Failed to fetch users:", err);
+        setTotalPage(Math.ceil(data.length / 10) || 1);
+        setDataFetching(data.slice((page - 1) * 10, page * 10));
       }
-    },
-    [],
-  );
+    } catch (err) {
+      console.error("Failed to fetch users:", err);
+    }
+  }, []);
 
   useEffect(() => {
     fetchUsers(curPage, searchText);
@@ -99,13 +108,19 @@ const UserManagementList = () => {
             onClick={() => handleUpdate(data.id)}
           />
         </Tooltip>
-        {!organizationType && (
-          <Tooltip title="Xóa" placement="top">
-            <XMarkIcon
+        {!organizationType && data.status !== false && (
+          <Tooltip title="Khóa" placement="top">
+            <LockClosedIcon
               className="h-6 w-6 cursor-pointer text-red-600 hover:text-red-800"
-              onClick={() =>
-                handleRemoveUser(data.id, data.username)
-              }
+              onClick={() => handleLockUser(data.id, data.username)}
+            />
+          </Tooltip>
+        )}
+        {!organizationType && data.status === false && (
+          <Tooltip title="Mở khóa" placement="top">
+            <LockOpenIcon
+              className="h-6 w-6 cursor-pointer text-green-600 hover:text-green-800"
+              onClick={() => handleUnlockUser(data.id, data.username)}
             />
           </Tooltip>
         )}
@@ -134,30 +149,61 @@ const UserManagementList = () => {
     return pageIdx;
   };
 
-  const handleRemoveUser = (id: number, username: string) => {
+  const handleLockUser = (id: number, username: string) => {
     Swal.fire({
-      html:
-        "Bạn có muốn xoá người dùng " + `<b>${username}</b>` + " không?",
-      icon: "info",
+      html: "Bạn có muốn khóa người dùng " + `<b>${username}</b>` + " không?",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      confirmButtonText: "Xoá",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Khóa",
       cancelButtonText: "Huỷ",
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
         userApi
-          .delete(id)
+          .lock(id)
           .then(() => {
             Swal.fire({
               icon: "success",
-              title: "Xoá người dùng thành công!",
+              title: "Khóa người dùng thành công!",
             }).then(() => setReFetching((prev) => !prev));
           })
           .catch(() => {
             Swal.fire({
               icon: "error",
-              title: "Xóa người dùng không thành công!",
+              title: "Khóa người dùng không thành công!",
+            });
+          });
+      }
+    });
+  };
+
+  const handleUnlockUser = (id: number, username: string) => {
+    Swal.fire({
+      html:
+        "Bạn có muốn mở khóa người dùng " + `<b>${username}</b>` + " không?",
+      icon: "info",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Mở khóa",
+      cancelButtonText: "Huỷ",
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        userApi
+          .unlock(id)
+          .then(() => {
+            Swal.fire({
+              icon: "success",
+              title: "Mở khóa người dùng thành công!",
+            }).then(() => setReFetching((prev) => !prev));
+          })
+          .catch(() => {
+            Swal.fire({
+              icon: "error",
+              title: "Mở khóa người dùng không thành công!",
             });
           });
       }

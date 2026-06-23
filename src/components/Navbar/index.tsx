@@ -9,6 +9,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { twMerge } from "tailwind-merge";
 import Modal from "@/components/Modal";
 import ChangePasswordForm from "@/pages/Login/ChangePassWord";
+import jwt_decode from "jwt-decode";
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
@@ -68,7 +69,23 @@ export default function Navbar() {
                     Hệ thống quản lý nha học đường
                   </Link>
                   <div className="menuBar hidden sm:ml-6 sm:flex sm:space-x-8">
-                    {navMenuItems.map((item) => (
+                    {navMenuItems.filter((item) => {
+                      if (item.slug === slugs.accountRegistration || item.slug === slugs.loginLogs || item.slug === slugs.managementUser) {
+                        const token = localStorage.getItem("accessToken");
+                        let isAdmin = false;
+                        if (token) {
+                          try {
+                            const decoded: any = jwt_decode(token);
+                            const roles = decoded?.roles || [];
+                            isAdmin = roles.some((r: any) => r.code === "ADMIN");
+                          } catch (e) {
+                            console.error(e);
+                          }
+                        }
+                        return isAdmin;
+                      }
+                      return true;
+                    }).map((item) => (
                       <Link
                         to={item.slug}
                         key={item.id}

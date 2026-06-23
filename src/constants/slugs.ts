@@ -20,6 +20,7 @@ const slugs = {
   management: "/management",
   managementUser: "/management-user",
   accountRegistration: "/account-registration",
+  loginLogs: "/login-logs",
 };
 
 export { slugs };

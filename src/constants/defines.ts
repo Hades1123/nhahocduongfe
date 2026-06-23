@@ -23,6 +23,16 @@ export const navMenuItems: NavMenuItem[] = [
     title: "Duyệt tài khoản",
     slug: slugs.accountRegistration,
   },
+  {
+    id: uuidv4(),
+    title: "Nhật ký đăng nhập",
+    slug: slugs.loginLogs,
+  },
+  {
+    id: uuidv4(),
+    title: "Quản lý người dùng",
+    slug: slugs.managementUser,
+  },
   // {
   //   id: uuidv4(),
   //   title: "Báo cáo",
