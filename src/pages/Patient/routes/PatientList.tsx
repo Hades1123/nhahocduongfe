@@ -193,38 +193,40 @@ const PatientList = (props: Props) => {
   };
 
   useEffect(() => {
-    api.get(`/api/organization/search`).then((response) => {
+    api.get(`/api/organization/search?size=1000`).then((response) => {
       // console.log("school:", response.data.content);
       setOrganizations(response.data.content);
     });
   }, []);
 
   function formatList(list: any) {
-    return list.map((item: any) => {
-      let result = item.name;
-      const listRemove = [
-        "Tỉnh ",
-        "Thành phố ",
-        "Thị xã ",
-        "Quận ",
-        "Huyện ",
-        "Phường ",
-        "Xã ",
-      ];
-      listRemove.map((element) => {
-        result = result.replace(element, "");
-      });
+    return list
+      .map((item: any) => {
+        let result = item.name;
+        const listRemove = [
+          "Tỉnh ",
+          "Thành phố ",
+          "Thị xã ",
+          "Quận ",
+          "Huyện ",
+          "Phường ",
+          "Xã ",
+        ];
+        listRemove.map((element) => {
+          result = result.replace(element, "");
+        });
 
-      return {
-        value: result,
-        label: result,
-        item: item,
-      };
-    });
+        return {
+          value: result,
+          label: result,
+          item: item,
+        };
+      })
+      .sort((a: any, b: any) => a.label.localeCompare(b.label));
   }
 
   useEffect(() => {
-    api.get('/api/areas/lookup?region=SOUTH').then((result) => {
+    api.get("/api/areas/lookup").then((result) => {
       if (result) {
         const list = formatList(result.data);
         setListProvince(list);
@@ -487,6 +489,18 @@ const PatientList = (props: Props) => {
       setMedicalDayRange(values);
     }
   };
+  const filterSchoolByProvince = (province: any) => {
+    const filteredSchools = organizations.filter(
+      (school: any) => school.areaCode === province?.item.code,
+    );
+    const formatSchool = filteredSchools.map((school: any) => ({
+      value: school,
+      label: school.name,
+    }));
+    setSchoolOptions([{ value: "", label: "Tất cả" }, ...formatSchool]);
+    setProvince(province);
+    setSchool(null);
+  };
 
   return (
     <div className="mt-5 flex flex-col gap-5 sm:px-6 ">
@@ -498,7 +512,7 @@ const PatientList = (props: Props) => {
               placeholder="Chọn tỉnh/thành"
               options={listProvince}
               value={province}
-              onChange={(e) => setProvince(e)}
+              onChange={(e) => filterSchoolByProvince(e)}
             />
             <Select
               label="Trường"
