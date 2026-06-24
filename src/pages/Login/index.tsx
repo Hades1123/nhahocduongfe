@@ -18,10 +18,12 @@ interface Props {}
 
 const Login = (props: Props) => {
   const [showPass, setShowPass] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { login, guestLogin } = useAuthStore();
   const navigate = useNavigate();
 
   const handleGuestLogin = async () => {
+    setIsLoading(true);
     try {
       await guestLogin();
       Swal.fire({
@@ -36,6 +38,8 @@ const Login = (props: Props) => {
         icon: "error",
         title: "Không thể kết nối dịch vụ Guest. Vui lòng thử lại.",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -52,21 +56,8 @@ const Login = (props: Props) => {
     },
     onSubmit: async (values) => {
       try {
-        // get token
+        setIsLoading(true);
         await login(values.username, values.password);
-        // const authResponse = await api.post(`/api/auth/login`, values);
-
-        // localStorage.setItem("token", authResponse.data.token);
-        // dispatchEvent(new Event("storage"));
-
-        // localStorage.setItem("userName", values.username);
-
-        // localStorage.setItem("user", JSON.stringify(authResponse.data.data));
-        // dispatchEvent(new Event("storage"));
-
-        // get role
-        // const roleResponse = await api.post(`/commons/role/id'`, values);
-        // handleResponse(roleResponse);
 
         Swal.fire({
           icon: "success",
@@ -74,16 +65,13 @@ const Login = (props: Props) => {
         });
 
         navigate("/");
-
-        // const { username, password } = values;
-        // localStorage.setItem("username", username);
-
-        // login(username, password);
       } catch (err) {
         Swal.fire({
           icon: "error",
           title: "Tên đăng nhập hoặc mật khẩu không đúng",
         });
+      } finally {
+        setIsLoading(false);
       }
     },
     validationSchema: validationSchema,
@@ -154,18 +142,39 @@ const Login = (props: Props) => {
             />
             <Checkbox label="Nhớ mật khẩu" />
             <Button
-              isDisabled={!isEmpty(errors) || !dirty}
+              isDisabled={!isEmpty(errors) || !dirty || isLoading}
               type="submit"
               className="h-14 text-lg"
             >
-              Đăng nhập
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Đang đăng nhập...
+                </span>
+              ) : (
+                "Đăng nhập"
+              )}
             </Button>
             <Button
               type="button"
               onClick={handleGuestLogin}
+              isDisabled={isLoading}
               className="h-14 text-lg !bg-slate-600 hover:!bg-slate-700 text-white"
             >
-              Đăng nhập với vai trò Khách (GUEST)
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Đang đăng nhập...
+                </span>
+              ) : (
+                "Đăng nhập với vai trò Khách (GUEST)"
+              )}
             </Button>
             <div className="flex items-center justify-center gap-2 mt-2">
               <span className="text-base text-gray-600">
