@@ -20,6 +20,38 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isOpenUpdatePassword, setIsOpenUpdatePassword] = useState(false);
+
+  const token = localStorage.getItem("accessToken");
+  let isGuest = false;
+  let isAdmin = false;
+  if (token) {
+    try {
+      const decoded: any = jwt_decode(token);
+      const roles = decoded?.roles || [];
+      isGuest = roles.some((r: any) => r.code === "GUEST");
+      isAdmin = roles.some((r: any) => r.code === "ADMIN");
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  const filteredMenuItems = navMenuItems.filter((item) => {
+    if (isGuest) {
+      return item.slug === slugs.dentalArticles;
+    }
+    if (item.slug === slugs.dentalArticles) {
+      return false;
+    }
+    if (
+      item.slug === slugs.accountRegistration ||
+      item.slug === slugs.loginLogs ||
+      item.slug === slugs.managementUser
+    ) {
+      return isAdmin;
+    }
+    return true;
+  });
+
   return (
     <>
       <Modal
@@ -36,7 +68,7 @@ export default function Navbar() {
         />
       </Modal>
       <Disclosure as="nav" className="sticky top-0 z-50 bg-indigo-600 shadow">
-        {({ open }) => (
+        {({ open, close }) => (
           <>
             <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
               <div className="relative flex h-16 justify-between">
@@ -69,34 +101,7 @@ export default function Navbar() {
                     Hệ thống quản lý nha học đường
                   </Link>
                   <div className="menuBar hidden sm:ml-6 sm:flex sm:space-x-8">
-                    {navMenuItems.filter((item) => {
-                      const token = localStorage.getItem("accessToken");
-                      let isGuest = false;
-                      let isAdmin = false;
-                      if (token) {
-                        try {
-                          const decoded: any = jwt_decode(token);
-                          const roles = decoded?.roles || [];
-                          isGuest = roles.some((r: any) => r.code === "GUEST");
-                          isAdmin = roles.some((r: any) => r.code === "ADMIN");
-                        } catch (e) {
-                          console.error(e);
-                        }
-                      }
-
-                      if (isGuest) {
-                        return item.slug === slugs.dentalArticles;
-                      }
-
-                      if (item.slug === slugs.dentalArticles) {
-                        return false;
-                      }
-
-                      if (item.slug === slugs.accountRegistration || item.slug === slugs.loginLogs || item.slug === slugs.managementUser) {
-                        return isAdmin;
-                      }
-                      return true;
-                    }).map((item) => (
+                    {filteredMenuItems.map((item) => (
                       <Link
                         to={item.slug}
                         key={item.id}
@@ -104,7 +109,7 @@ export default function Navbar() {
                           "inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm",
                           "font-medium text-white hover:border-gray-300 hover:text-gray-50",
                           location.pathname === item.slug &&
-                            "border-white font-semibold ",
+                          "border-white font-semibold ",
                         )}
                       >
                         {item.title}
@@ -116,7 +121,7 @@ export default function Navbar() {
                       className={twMerge(
                         "relative ml-3 inline-flex items-center border-b-2 border-transparent px-1 pt-1 hover:border-gray-300",
                         location.pathname === slugs.report1 &&
-                          "border-white font-semibold",
+                        "border-white font-semibold",
                       )}
                     >
                       {/* <Menu.Button>
@@ -191,20 +196,20 @@ export default function Navbar() {
                       <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                         {localStorage.getItem("username") != "guest" && (
                           <Menu.Item>
-                          {({ active }) => (
-                            <>
-                              <p
-                                className={classNames(
-                                  active ? "bg-gray-100" : "",
-                                  "block cursor-pointer px-4 py-2 text-sm text-gray-700",
-                                )}
-                                onClick={() => setIsOpenUpdatePassword(true)}
-                              >
-                                Đổi mật khẩu
-                              </p>
-                            </>
-                          )}
-                        </Menu.Item>
+                            {({ active }) => (
+                              <>
+                                <p
+                                  className={classNames(
+                                    active ? "bg-gray-100" : "",
+                                    "block cursor-pointer px-4 py-2 text-sm text-gray-700",
+                                  )}
+                                  onClick={() => setIsOpenUpdatePassword(true)}
+                                >
+                                  Đổi mật khẩu
+                                </p>
+                              </>
+                            )}
+                          </Menu.Item>
                         )}
                         <Menu.Item>
                           {({ active }) => (
@@ -229,35 +234,22 @@ export default function Navbar() {
 
             <Disclosure.Panel className="sm:hidden">
               <div className="space-y-1 pb-4 pt-2">
-                {/* Current: "bg-indigo-50 border-indigo-500 text-indigo-700", Default: "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700" */}
-                <Disclosure.Button
-                  as={Link}
-                  to="#"
-                  className="block border-l-4 border-indigo-500 bg-indigo-50 py-2 pl-3 pr-4 text-base font-medium text-indigo-700"
-                >
-                  Dashboard
-                </Disclosure.Button>
-                <Disclosure.Button
-                  as={Link}
-                  to="#"
-                  className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700"
-                >
-                  Team
-                </Disclosure.Button>
-                <Disclosure.Button
-                  as={Link}
-                  to="#"
-                  className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700"
-                >
-                  Projects
-                </Disclosure.Button>
-                <Disclosure.Button
-                  as={Link}
-                  to="#"
-                  className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700"
-                >
-                  Calendar
-                </Disclosure.Button>
+                {filteredMenuItems.map((item) => (
+                  <Disclosure.Button
+                    key={item.id}
+                    as={Link}
+                    to={item.slug}
+                    onClick={() => close()}
+                    className={twMerge(
+                      "block border-l-4 py-2 pl-3 pr-4 text-base font-medium",
+                      location.pathname === item.slug
+                        ? "border-white bg-indigo-700 text-white font-semibold"
+                        : "border-transparent text-white hover:bg-indigo-500 hover:text-gray-50"
+                    )}
+                  >
+                    {item.title}
+                  </Disclosure.Button>
+                ))}
               </div>
             </Disclosure.Panel>
           </>
