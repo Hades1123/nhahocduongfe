@@ -1,6 +1,6 @@
-import * as React from 'react';
-import { useCallback } from 'react';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import * as React from "react";
+import { useCallback } from "react";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 interface NumberButtonType {
   content?: any;
@@ -19,15 +19,24 @@ interface PaginationTableType {
   handleGoToNextPage?: () => void;
 }
 
-function NumberButton({ content, onClick, active, disabled }: NumberButtonType) {
+function NumberButton({
+  content,
+  onClick,
+  active,
+  disabled,
+}: NumberButtonType) {
   return (
     <button
       className={`flex h-9 w-9 cursor-pointer flex-col items-center justify-center rounded-lg text-sm font-normal shadow-[0_4px_10px_rgba(0,0,0,0.03)] transition-colors
-      ${active ? 'text-red bg-blue-400 font-black ring-2' : 'font-light text-gray-900'}
+      ${
+        active
+          ? "text-red bg-blue-400 font-black ring-2"
+          : "font-light text-gray-900"
+      }
       ${
         !disabled
-          ? 'bg-white hover:bg-indigo-600 hover:text-white'
-          : 'cursor-not-allowed bg-white text-gray-200'
+          ? "bg-white hover:bg-indigo-600 hover:text-white"
+          : "cursor-not-allowed bg-white text-gray-200"
       }
       `}
       onClick={onClick}
@@ -39,20 +48,24 @@ function NumberButton({ content, onClick, active, disabled }: NumberButtonType) 
 }
 
 export const PaginationTable = React.forwardRef<any, any>(
-  ({
-    gotoPage,
-    canPreviousPage,
-    canNextPage,
-    pageCount,
-    pageIndex,
-    handleGoBackPreviousPage,
-    handleGoToNextPage,
-    ...props
-  }: PaginationTableType) => {
+  (
+    {
+      gotoPage,
+      canPreviousPage,
+      canNextPage,
+      pageCount,
+      pageIndex,
+      handleGoBackPreviousPage,
+      handleGoToNextPage,
+      ...props
+    }: PaginationTableType,
+    _ref,
+  ) => {
     const renderPageLinks = useCallback(() => {
       if (pageCount === 0) return null;
       const visiblePageButtonCount = 10;
-      let numberOfButtons = pageCount < visiblePageButtonCount ? pageCount : visiblePageButtonCount;
+      let numberOfButtons =
+        pageCount < visiblePageButtonCount ? pageCount : visiblePageButtonCount;
       const pageIndices = [pageIndex];
       numberOfButtons--;
       [...Array(numberOfButtons)].forEach((_item, itemIndex) => {
@@ -107,5 +120,5 @@ export const PaginationTable = React.forwardRef<any, any>(
         </li>
       </ul>
     );
-  }
+  },
 );
