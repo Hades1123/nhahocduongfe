@@ -1,4 +1,3 @@
-import { api } from "@/api/api";
 import background from "@/assets/background.jpg";
 import bg from "@/assets/bg.svg";
 import logo from "@/assets/logo/logo.png";
@@ -14,16 +13,15 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import * as Yup from "yup";
 
-interface Props {}
-
-const Login = (props: Props) => {
+const Login = () => {
   const [showPass, setShowPass] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isGuestLoading, setIsGuestLoading] = useState<boolean>(false);
   const { login, guestLogin } = useAuthStore();
   const navigate = useNavigate();
 
   const handleGuestLogin = async () => {
-    setIsLoading(true);
+    setIsGuestLoading(true);
     try {
       await guestLogin();
       Swal.fire({
@@ -39,14 +37,13 @@ const Login = (props: Props) => {
         title: "Không thể kết nối dịch vụ Guest. Vui lòng thử lại.",
       });
     } finally {
-      setIsLoading(false);
+      setIsGuestLoading(false);
     }
   };
 
   const validationSchema = Yup.object().shape({
     username: Yup.string().required("Vui lòng nhập tên đăng nhập"),
-    password: Yup.string()
-      .required("Vui lòng nhập mật khẩu"),
+    password: Yup.string().required("Vui lòng nhập mật khẩu"),
   });
 
   const formik = useFormik<ILoginForm>({
@@ -148,9 +145,25 @@ const Login = (props: Props) => {
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  <svg
+                    className="h-5 w-5 animate-spin text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
                   </svg>
                   Đang đăng nhập...
                 </span>
@@ -161,14 +174,30 @@ const Login = (props: Props) => {
             <Button
               type="button"
               onClick={handleGuestLogin}
-              isDisabled={isLoading}
-              className="h-14 text-lg !bg-slate-600 hover:!bg-slate-700 text-white"
+              isDisabled={isGuestLoading}
+              className="h-14 !bg-slate-600 text-lg text-white hover:!bg-slate-700"
             >
-              {isLoading ? (
+              {isGuestLoading ? (
                 <span className="flex items-center gap-2">
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  <svg
+                    className="h-5 w-5 animate-spin text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
                   </svg>
                   Đang đăng nhập...
                 </span>
@@ -176,14 +205,14 @@ const Login = (props: Props) => {
                 "Đăng nhập với vai trò Khách (GUEST)"
               )}
             </Button>
-            <div className="flex items-center justify-center gap-2 mt-2">
+            <div className="mt-2 flex items-center justify-center gap-2">
               <span className="text-base text-gray-600">
                 Bạn chưa có tài khoản?
               </span>
               <button
                 type="button"
                 onClick={() => navigate("/signup")}
-                className="text-base font-semibold text-indigo-600 hover:text-indigo-700 underline cursor-pointer"
+                className="cursor-pointer text-base font-semibold text-indigo-600 underline hover:text-indigo-700"
               >
                 Đăng ký tại đây
               </button>
