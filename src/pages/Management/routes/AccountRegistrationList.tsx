@@ -73,7 +73,9 @@ const AccountRegistrationList = () => {
     if (searchText) {
       filtered = allData.filter(
         (item: any) =>
-          (item.username || "").toLowerCase().includes(searchText.toLowerCase()) ||
+          (item.username || "")
+            .toLowerCase()
+            .includes(searchText.toLowerCase()) ||
           `${item.lastName || ""} ${item.firstName || ""}`
             .trim()
             .toLowerCase()
@@ -126,7 +128,10 @@ const AccountRegistrationList = () => {
 
   const handleReject = (id: number, username: string) => {
     Swal.fire({
-      html: "Bạn có muốn từ chối và xóa tài khoản " + `<b>${username}</b>` + " không?",
+      html:
+        "Bạn có muốn từ chối và xóa tài khoản " +
+        `<b>${username}</b>` +
+        " không?",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#dc2626",
@@ -163,32 +168,30 @@ const AccountRegistrationList = () => {
     }
   };
 
-  const dataSource = dataFetching.map(
-    (data: any, idx: number) => ({
-      stt: (curPage - 1) * itemsPerPage + idx + 1,
-      username: data.username || "-",
-      fullName: `${data.lastName || ""} ${data.firstName || ""}`.trim() || "-",
-      email: data.email || "-",
-      phoneNumber: data.phoneNumber || "-",
-      createdDate: formatDate(data.createdDate),
-      action: (
-        <span className="flex justify-center gap-4">
-          <Tooltip title="Duyệt" placement="top">
-            <CheckCircleIcon
-              className="h-6 w-6 cursor-pointer text-green-600 hover:text-green-800"
-              onClick={() => handleApprove(data.id, data.username)}
-            />
-          </Tooltip>
-          <Tooltip title="Từ chối" placement="top">
-            <XCircleIcon
-              className="h-6 w-6 cursor-pointer text-red-600 hover:text-red-800"
-              onClick={() => handleReject(data.id, data.username)}
-            />
-          </Tooltip>
-        </span>
-      ),
-    }),
-  );
+  const dataSource = dataFetching.map((data: any, idx: number) => ({
+    stt: (curPage - 1) * itemsPerPage + idx + 1,
+    username: data.username || "-",
+    fullName: `${data.lastName || ""} ${data.firstName || ""}`.trim() || "-",
+    email: data.email || "-",
+    phoneNumber: data.phoneNumber || "-",
+    createdDate: formatDate(data.createdDate),
+    action: (
+      <span className="flex justify-center gap-4">
+        <Tooltip title="Duyệt" placement="top">
+          <CheckCircleIcon
+            className="h-6 w-6 cursor-pointer text-green-600 hover:text-green-800"
+            onClick={() => handleApprove(data.id, data.username)}
+          />
+        </Tooltip>
+        <Tooltip title="Từ chối" placement="top">
+          <XCircleIcon
+            className="h-6 w-6 cursor-pointer text-red-600 hover:text-red-800"
+            onClick={() => handleReject(data.id, data.username)}
+          />
+        </Tooltip>
+      </span>
+    ),
+  }));
 
   const paging = () => {
     const pageIdx = [];

@@ -8,7 +8,8 @@
     "build": "tsc && vite build --mode development",
     "build-prod": "tsc && vite build --mode production",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",

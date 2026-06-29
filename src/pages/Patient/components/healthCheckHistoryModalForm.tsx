@@ -1,41 +1,41 @@
-import { api } from '@/api/api';
-import Button from '@/components/Button';
-import Card from '@/components/Card';
-import Divider from '@/components/Dividers';
-import Odontogram from '@/pages/DentalRecord/components/Odontogram';
-import TreatmentTable from '@/pages/DentalRecord/components/TreatmentTable';
-import React, { useRef, useState } from 'react';
-import { useQuery } from 'react-query';
-import { useNavigate, useParams } from 'react-router-dom';
-import UpdateHeathCheckHistory from './updateHeathCheckHistory';
-import Confirm from '@/components/ConfirmDialog';
-import Swal from 'sweetalert2';
-import TeethOverall from '@/pages/DentalRecord/components/TeethOverall';
-import PaginationTable from '@/components/PaginationTable';
-import Input from '@/components/Input';
-import Checkbox from '@/components/Checkbox';
+import { api } from "@/api/api";
+import Button from "@/components/Button";
+import Card from "@/components/Card";
+import Divider from "@/components/Dividers";
+import Odontogram from "@/pages/DentalRecord/components/Odontogram";
+import TreatmentTable from "@/pages/DentalRecord/components/TreatmentTable";
+import React, { useRef, useState } from "react";
+import { useQuery } from "react-query";
+import { useNavigate, useParams } from "react-router-dom";
+import UpdateHeathCheckHistory from "./updateHeathCheckHistory";
+import Confirm from "@/components/ConfirmDialog";
+import Swal from "sweetalert2";
+import TeethOverall from "@/pages/DentalRecord/components/TeethOverall";
+import PaginationTable from "@/components/PaginationTable";
+import Input from "@/components/Input";
+import Checkbox from "@/components/Checkbox";
 
 interface Props {}
 
-const heads = ['Phiếu khám', 'Học sinh', 'Ngày khám', 'Nơi khám', 'Thao tác'];
+const heads = ["Phiếu khám", "Học sinh", "Ngày khám", "Nơi khám", "Thao tác"];
 
 const mapping = (values: any) => {
   const plaqueRecord = {
-    '17-16n': values.teethLeft1?.value || '0',
-    '11n': values.teethLeft2?.value || '0',
-    '26-27n': values.teethLeft3?.value || '0',
-    '47-46t': values.teethLeft4?.value || '0',
-    '31n': values.teethLeft5?.value || '0',
-    '36-37t': values.teethLeft6?.value || '0',
+    "17-16n": values.teethLeft1?.value || "0",
+    "11n": values.teethLeft2?.value || "0",
+    "26-27n": values.teethLeft3?.value || "0",
+    "47-46t": values.teethLeft4?.value || "0",
+    "31n": values.teethLeft5?.value || "0",
+    "36-37t": values.teethLeft6?.value || "0",
   };
 
   const tartarRecord = {
-    '17-16n': values.teethRight1?.value || '0',
-    '11n': values.teethRight2?.value || '0',
-    '26-27n': values.teethRight3?.value || '0',
-    '47-46t': values.teethRight4?.value || '0',
-    '31n': values.teethRight5?.value || '0',
-    '36-37t': values.teethRight6?.value || '0',
+    "17-16n": values.teethRight1?.value || "0",
+    "11n": values.teethRight2?.value || "0",
+    "26-27n": values.teethRight3?.value || "0",
+    "47-46t": values.teethRight4?.value || "0",
+    "31n": values.teethRight5?.value || "0",
+    "36-37t": values.teethRight6?.value || "0",
   };
 
   return { plaqueRecord, tartarRecord };
@@ -55,8 +55,8 @@ const HealthCheckModal = (props: Props) => {
   const [open, setOpen] = useState(false);
   const [treatmentList, setTreatmentList] = useState([]);
   const [triggerTreatment, setTriggerTreatment] = useState(false);
-  const [selectedRecordId, setSelectedRecordId] = useState('');
-  const [searchText, setSearchText] = useState<string>('');
+  const [selectedRecordId, setSelectedRecordId] = useState("");
+  const [searchText, setSearchText] = useState<string>("");
   const [fromDate, setFromDate] = useState<any>();
   const [toDate, setToDate] = useState<any>();
   const [checked, setChecked] = useState<boolean>(false);
@@ -64,7 +64,7 @@ const HealthCheckModal = (props: Props) => {
   const { data: patient } = useQuery(
     `/api/patient/${id}`,
     () => api.get(`/api/patient/${id}`).then((response) => response.data),
-    { retry: false, refetchOnWindowFocus: false }
+    { retry: false, refetchOnWindowFocus: false },
   );
 
   const deleteHandle = (e: any) => {
@@ -75,10 +75,10 @@ const HealthCheckModal = (props: Props) => {
   };
 
   const [mappingSource, setMappingSource] = useState<any[]>([
-    'id',
-    'patientName',
-    'date',
-    'organizationName',
+    "id",
+    "patientName",
+    "date",
+    "organizationName",
 
     <Button onClick={(e) => deleteHandle(e)}>Xóa</Button>,
   ]);
@@ -91,7 +91,7 @@ const HealthCheckModal = (props: Props) => {
           record: odontogramRef.current,
         })
         .then((response) => response.data.record),
-    { enabled: triggerSumitOdo, retry: false, refetchOnWindowFocus: false }
+    { enabled: triggerSumitOdo, retry: false, refetchOnWindowFocus: false },
   );
 
   useQuery(
@@ -99,12 +99,12 @@ const HealthCheckModal = (props: Props) => {
     () =>
       api.post(
         `/api/patients/${id}/exams/${rowIndex.current}/plaqueRecord`,
-        mapping(plaqueRef.current).plaqueRecord
+        mapping(plaqueRef.current).plaqueRecord,
       ),
     {
       enabled: triggerSumitOdo,
       refetchOnWindowFocus: false,
-    }
+    },
   );
 
   useQuery(
@@ -112,25 +112,29 @@ const HealthCheckModal = (props: Props) => {
     () =>
       api.post(
         `/api/patients/${id}/exams/${rowIndex.current}/tartarRecord`,
-        mapping(plaqueRef.current).tartarRecord
+        mapping(plaqueRef.current).tartarRecord,
       ),
     {
       enabled: triggerSumitOdo,
       refetchOnWindowFocus: false,
-    }
+    },
   );
 
   useQuery(
-    'treatmentRecord',
-    () => api.post(`/api/patients/${id}/exams/${rowIndex.current}/treatmentRecord`, treatmentList),
+    "treatmentRecord",
+    () =>
+      api.post(
+        `/api/patients/${id}/exams/${rowIndex.current}/treatmentRecord`,
+        treatmentList,
+      ),
     {
       enabled: triggerTreatment,
       refetchOnWindowFocus: false,
-    }
+    },
   );
 
   function padTo2Digits(num: number) {
-    return num.toString().padStart(2, '0');
+    return num.toString().padStart(2, "0");
   }
 
   function formatDate(date: Date) {
@@ -138,17 +142,19 @@ const HealthCheckModal = (props: Props) => {
       date.getFullYear(),
       padTo2Digits(date.getMonth() + 1),
       padTo2Digits(date.getDate()),
-    ].join('-');
+    ].join("-");
   }
 
   const {} = useQuery(
-    ['updateRecord'],
+    ["updateRecord"],
     () =>
       api
         .put(`/api/patients/${id}/exams`, {
           id: rowIndex.current,
           dentistId: 2,
-          organizationId: patient.organization?.id ? patient.organization.id : 1,
+          organizationId: patient.organization?.id
+            ? patient.organization.id
+            : 1,
           schoolClass: patient.schoolClass,
           date: formatDate(new Date()),
           year: new Date().getFullYear(),
@@ -158,56 +164,56 @@ const HealthCheckModal = (props: Props) => {
           await setTriggerSumitOdo(true);
           await setTriggerTreatment(true);
           await Swal.fire({
-            icon: 'success',
-            html: 'Chỉnh sửa phiếu khám thành công!',
+            icon: "success",
+            html: "Chỉnh sửa phiếu khám thành công!",
           });
           navigate(0);
         })
         .catch(() =>
           Swal.fire({
-            icon: 'error',
-            html: 'Chỉnh sửa phiếu khám không thành công!',
-          })
+            icon: "error",
+            html: "Chỉnh sửa phiếu khám không thành công!",
+          }),
         ),
     {
       enabled: triggerUpdate,
       refetchOnWindowFocus: false,
       retry: false,
-    }
+    },
   );
 
   useQuery(
-    ['deleteRecord', rowIndex.current],
+    ["deleteRecord", rowIndex.current],
     () =>
       api
         .delete(`/api/exams/${rowIndex.current}`)
         .then(async () => {
           await Swal.fire({
-            icon: 'success',
-            title: 'Xoá thành công',
+            icon: "success",
+            title: "Xoá thành công",
           });
           navigate(0);
         })
         .catch(() => {
           Swal.fire({
-            icon: 'error',
-            title: 'Xoá không thành công',
+            icon: "error",
+            title: "Xoá không thành công",
           });
         })
         .finally(() => triggerDelete(false)),
     {
       enabled: triggerSubmit,
       refetchOnWindowFocus: false,
-    }
+    },
   );
 
   const handleBack = () => {
     Swal.fire({
-      html: 'Bạn có muốn quay lại thông tin học sinh không?',
+      html: "Bạn có muốn quay lại thông tin học sinh không?",
       showCancelButton: true,
       focusConfirm: false,
-      confirmButtonText: 'Quay lại',
-      cancelButtonText: 'Hủy',
+      confirmButtonText: "Quay lại",
+      cancelButtonText: "Hủy",
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
@@ -236,27 +242,29 @@ const HealthCheckModal = (props: Props) => {
     examsRef.current.refetch();
     const queryParams = new URLSearchParams();
     if (fromDate) {
-      queryParams.append('fromDate', fromDate);
+      queryParams.append("fromDate", fromDate);
     }
     if (toDate) {
-      queryParams.append('toDate', toDate);
+      queryParams.append("toDate", toDate);
     }
     if (searchText) {
-      queryParams.append('id', searchText);
+      queryParams.append("id", searchText);
     }
     setSearchValues(
-      `/search?fromDate=${fromDate ? fromDate : ''}&toDate=${toDate ? toDate : ''}&id=${searchText}`
+      `/search?fromDate=${fromDate ? fromDate : ""}&toDate=${
+        toDate ? toDate : ""
+      }&id=${searchText}`,
     );
   };
 
   const handleSubmit = () => {
     Swal.fire({
-      icon: 'info',
-      html: 'Bạn muốn chỉnh sửa phiếu khám không?',
+      icon: "info",
+      html: "Bạn muốn chỉnh sửa phiếu khám không?",
       showCancelButton: true,
       focusConfirm: false,
-      confirmButtonText: 'Tiếp tục',
-      cancelButtonText: 'Huỷ',
+      confirmButtonText: "Tiếp tục",
+      cancelButtonText: "Huỷ",
       reverseButtons: true,
     }).then(async (result) => {
       if (result.isConfirmed) {
@@ -313,9 +321,14 @@ const HealthCheckModal = (props: Props) => {
             <div className="pl-4">* Chọn phiếu khám để xem chi tiết.</div>
           ) : (
             <div className="flex flex-col gap-6">
-              <Odontogram selectedTreatment={selectedRecordId} ref={odontogramRef} />
+              <Odontogram
+                selectedTreatment={selectedRecordId}
+                ref={odontogramRef}
+              />
               <Divider />
-              <h1 className="text-lg font-bold">2. Tình trạng vệ sinh răng miệng (OHI-S)</h1>
+              <h1 className="text-lg font-bold">
+                2. Tình trạng vệ sinh răng miệng (OHI-S)
+              </h1>
               <TeethOverall ref={plaqueRef} selectedExam={selectedRecordId} />
               <Divider />
               <h1 className="text-lg font-bold">3. Điều trị</h1>

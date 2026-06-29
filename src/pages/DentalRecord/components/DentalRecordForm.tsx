@@ -107,7 +107,7 @@ const DentalRecordForm = (props: Props) => {
         <Card header="III. Quá trình khám bệnh" className="flex flex-col gap-4">
           <h1 className="text-lg font-bold">1. Tình trạng răng</h1>
           <Odontogram />
-        
+
           <h1 className="text-lg font-bold">2. Điều trị</h1>
           <div className="grid grid-cols-5 gap-10">
             <Select label="Nhóm dịch vụ" />

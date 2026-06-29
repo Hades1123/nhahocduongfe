@@ -5,7 +5,7 @@ export interface IExamCampaign {
   name: string;
   campaignStatus: CampaignStatus;
   startDate: string; // Format: YYYY-MM-DD
-  endDate: string;   // Format: YYYY-MM-DD
+  endDate: string; // Format: YYYY-MM-DD
   description: string;
   status?: boolean;
 }

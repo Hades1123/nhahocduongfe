@@ -1,18 +1,18 @@
-import * as React from 'react';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import { useQuery } from 'react-query';
-import { api } from '@/api/api';
-import qs from 'query-string';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { get } from 'lodash';
-import { styled } from '@mui/material/styles';
-import { Typography, Skeleton, Pagination, useMediaQuery } from '@mui/material';
+import * as React from "react";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Paper from "@mui/material/Paper";
+import { useQuery } from "react-query";
+import { api } from "@/api/api";
+import qs from "query-string";
+import { useLocation, useNavigate } from "react-router-dom";
+import { get } from "lodash";
+import { styled } from "@mui/material/styles";
+import { Typography, Skeleton, Pagination, useMediaQuery } from "@mui/material";
 
 interface IPaginationService {
   dataSource?: any;
@@ -29,22 +29,22 @@ interface IPaginationService {
 }
 
 const TableCellStyled = styled(TableCell)(() => ({
-  color: 'white',
-  textAlign: 'center',
+  color: "white",
+  textAlign: "center",
   fontWeight: 600,
 }));
 
 const TableDataStyled = styled(TableCell)(() => ({
-  textAlign: 'center',
+  textAlign: "center",
 }));
 
 const SkeletonLoading = () => {
   return (
     <div className="">
-      <Typography component="div" key={'h1'} variant="h1">
+      <Typography component="div" key={"h1"} variant="h1">
         <Skeleton />
       </Typography>
-      <Typography component="div" key={'item1'} variant="h2">
+      <Typography component="div" key={"item1"} variant="h2">
         <Skeleton />
       </Typography>
     </div>
@@ -56,7 +56,7 @@ function ChevronIcon({ expanded }: { expanded: boolean }) {
   return (
     <svg
       className={`h-5 w-5 shrink-0 text-gray-400 transition-transform duration-200 ${
-        expanded ? 'rotate-180' : ''
+        expanded ? "rotate-180" : ""
       }`}
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 20 20"
@@ -71,34 +71,42 @@ function ChevronIcon({ expanded }: { expanded: boolean }) {
   );
 }
 
-const heads = ['Tên Bác Sĩ', 'Trường', 'Bệnh nhân', 'Ngày khám', 'Nơi'];
-const source = ['dentistName', 'organizationName', 'patientName', 'year', 'examPlace'];
+const heads = ["Tên Bác Sĩ", "Trường", "Bệnh nhân", "Ngày khám", "Nơi"];
+const source = [
+  "dentistName",
+  "organizationName",
+  "patientName",
+  "year",
+  "examPlace",
+];
 
 const PaginationTable = React.forwardRef<any, any>(
   (
     {
-      searchValues = '',
-      name = 'paginationTableService',
+      searchValues = "",
+      name = "paginationTableService",
       dataSource,
-      url = '',
+      url = "",
       headRows = heads,
       mappingSource = source,
       havePagination = false,
-      dataPath = '',
+      dataPath = "",
       onRowSelected,
       ...props
     }: IPaginationService,
-    ref: any
+    ref: any,
   ) => {
     const location = useLocation();
     const navigate = useNavigate();
     const totalPages = React.useRef(1);
-    const isDesktop = useMediaQuery('(min-width:1024px)');
+    const isDesktop = useMediaQuery("(min-width:1024px)");
 
     const [pageNumber, setPageNumber] = React.useState(0);
-    const [selectedRow, setSelectedRow] = React.useState('');
+    const [selectedRow, setSelectedRow] = React.useState("");
     const [dataAfterSort, setDataAfterSort] = React.useState<any>([]);
-    const [expandedCards, setExpandedCards] = React.useState<Set<number>>(new Set());
+    const [expandedCards, setExpandedCards] = React.useState<Set<number>>(
+      new Set(),
+    );
     const valuesOfExam = `${searchValues}`;
 
     // Default all cards to expanded
@@ -125,14 +133,14 @@ const PaginationTable = React.forwardRef<any, any>(
       `${url}${valuesOfExam}`,
       () =>
         api.get(`${url}${valuesOfExam}`).then((response) => {
-          totalPages.current = get(response, 'data.totalPages');
+          totalPages.current = get(response, "data.totalPages");
           return get(response, dataPath).content
             ? get(response, dataPath).content
             : get(response, dataPath);
         }),
       {
         refetchOnWindowFocus: false,
-      }
+      },
     );
 
     React.useEffect(() => {
@@ -160,7 +168,9 @@ const PaginationTable = React.forwardRef<any, any>(
     };
 
     const handleSort = () => {
-      const dataSort = [...dataAfterSort].sort((a, b) => (a.id < b.id || a.id > b.id ? -1 : 1));
+      const dataSort = [...dataAfterSort].sort((a, b) =>
+        a.id < b.id || a.id > b.id ? -1 : 1,
+      );
       setDataAfterSort(dataSort);
     };
 
@@ -175,10 +185,13 @@ const PaginationTable = React.forwardRef<any, any>(
               <TableHead>
                 <TableRow className="bg-indigo-500 text-center text-white">
                   {headRows.map((row: string, index: number) => (
-                    <TableCellStyled className="py-3.5 pl-4 pr-3 text-white sm:pl-6 " key={index}>
+                    <TableCellStyled
+                      className="py-3.5 pl-4 pr-3 text-white sm:pl-6 "
+                      key={index}
+                    >
                       <div className="flex justify-center">
                         {row}
-                        {row === 'Ngày khám' ? (
+                        {row === "Ngày khám" ? (
                           <a href="#" onClick={handleSort}>
                             <svg
                               className="ml-2 h-4 w-4"
@@ -202,10 +215,12 @@ const PaginationTable = React.forwardRef<any, any>(
                     onClick={() => handleClickRow(String(index), row)}
                     selected={String(index) === String(selectedRow)}
                     key={index}
-                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                   >
                     {mappingSource.map((item: any, itemIndex: number) => {
-                      const isElement = React.isValidElement(get(mappingSource, itemIndex));
+                      const isElement = React.isValidElement(
+                        get(mappingSource, itemIndex),
+                      );
 
                       return (
                         <TableDataStyled
@@ -239,20 +254,20 @@ const PaginationTable = React.forwardRef<any, any>(
                   key={index}
                   className={`overflow-hidden rounded-lg border bg-white shadow-sm transition-shadow hover:shadow-md ${
                     String(index) === String(selectedRow)
-                      ? 'border-indigo-400 ring-2 ring-indigo-200'
-                      : 'border-gray-200'
+                      ? "border-indigo-400 ring-2 ring-indigo-200"
+                      : "border-gray-200"
                   }`}
                 >
                   {/* Card Header */}
                   <button
                     type="button"
-                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-inset"
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
                     onClick={() => {
                       toggleCard(index);
                       handleClickRow(String(index), row);
                     }}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex min-w-0 items-center gap-3">
                       <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">
                         {index + 1}
                       </span>
@@ -273,13 +288,17 @@ const PaginationTable = React.forwardRef<any, any>(
                   {/* Expandable Details */}
                   <div
                     className={`transition-all duration-200 ease-in-out ${
-                      isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+                      isExpanded
+                        ? "max-h-[2000px] opacity-100"
+                        : "max-h-0 opacity-0"
                     } overflow-hidden`}
                   >
                     <div className="border-t border-gray-100 px-4 py-3">
                       <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         {mappingSource.map((item: any, itemIndex: number) => {
-                          const isElement = React.isValidElement(get(mappingSource, itemIndex));
+                          const isElement = React.isValidElement(
+                            get(mappingSource, itemIndex),
+                          );
                           const value = isElement
                             ? get(mappingSource, itemIndex)
                             : get(row, get(mappingSource, itemIndex));
@@ -287,10 +306,11 @@ const PaginationTable = React.forwardRef<any, any>(
                           return (
                             <div key={itemIndex} className="flex flex-col py-1">
                               <dt className="text-xs font-medium uppercase tracking-wider text-gray-500">
-                                {headRows[itemIndex] || `Column ${itemIndex + 1}`}
+                                {headRows[itemIndex] ||
+                                  `Column ${itemIndex + 1}`}
                               </dt>
-                              <dd className="mt-0.5 text-sm text-gray-900 break-words">
-                                {value ?? '—'}
+                              <dd className="mt-0.5 break-words text-sm text-gray-900">
+                                {value ?? "—"}
                               </dd>
                             </div>
                           );
@@ -323,7 +343,7 @@ const PaginationTable = React.forwardRef<any, any>(
         </div>
       </>
     );
-  }
+  },
 );
 
 export default PaginationTable;

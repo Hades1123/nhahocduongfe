@@ -1,5 +1,5 @@
-import { useState, useEffect, isValidElement } from 'react';
-import { TableColumn } from './type';
+import { useState, useEffect, isValidElement } from "react";
+import { TableColumn } from "./type";
 
 interface TableProps {
   columns?: TableColumn[];
@@ -13,7 +13,7 @@ function ChevronIcon({ expanded }: { expanded: boolean }) {
   return (
     <svg
       className={`h-5 w-5 shrink-0 text-gray-400 transition-transform duration-200 ${
-        expanded ? 'rotate-180' : ''
+        expanded ? "rotate-180" : ""
       }`}
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 20 20"
@@ -34,12 +34,21 @@ function ChevronIcon({ expanded }: { expanded: boolean }) {
  */
 function isActionColumn(column: TableColumn, sampleValue?: any): boolean {
   if (column.isAction) return true;
-  const title = typeof column.title === 'string' ? column.title.toLowerCase() : '';
-  if (['thao tác', 'action', 'handle', ''].includes(title) && isValidElement(sampleValue)) return true;
+  const title =
+    typeof column.title === "string" ? column.title.toLowerCase() : "";
+  if (
+    ["thao tác", "action", "handle", ""].includes(title) &&
+    isValidElement(sampleValue)
+  )
+    return true;
   return false;
 }
 
-export default function Table({ columns, dataSource, onColumnClick }: TableProps) {
+export default function Table({
+  columns,
+  dataSource,
+  onColumnClick,
+}: TableProps) {
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
 
   // Default all cards to expanded
@@ -60,8 +69,14 @@ export default function Table({ columns, dataSource, onColumnClick }: TableProps
 
   // Split columns into data columns and action columns
   const sampleItem = dataSource?.[0];
-  const dataColumns = columns?.filter((col) => !isActionColumn(col, sampleItem?.[col.dataIndex])) ?? [];
-  const actionColumns = columns?.filter((col) => isActionColumn(col, sampleItem?.[col.dataIndex])) ?? [];
+  const dataColumns =
+    columns?.filter(
+      (col) => !isActionColumn(col, sampleItem?.[col.dataIndex]),
+    ) ?? [];
+  const actionColumns =
+    columns?.filter((col) =>
+      isActionColumn(col, sampleItem?.[col.dataIndex]),
+    ) ?? [];
 
   // For the card header, use the first two data columns (typically STT + name/code)
   const headerColumns = dataColumns.slice(0, 2);
@@ -70,7 +85,7 @@ export default function Table({ columns, dataSource, onColumnClick }: TableProps
   return (
     <>
       {/* ═══════════════ DESKTOP TABLE (≥1024px) ═══════════════ */}
-      <div className="hidden lg:block flow-root">
+      <div className="flow-root hidden lg:block">
         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
             <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
@@ -117,7 +132,7 @@ export default function Table({ columns, dataSource, onColumnClick }: TableProps
       </div>
 
       {/* ═══════════════ TABLET & MOBILE CARDS (<1024px) ═══════════════ */}
-      <div className="lg:hidden flex flex-col gap-3">
+      <div className="flex flex-col gap-3 lg:hidden">
         {dataSource?.map((item, rowIndex) => {
           const isExpanded = expandedCards.has(rowIndex);
 
@@ -129,10 +144,10 @@ export default function Table({ columns, dataSource, onColumnClick }: TableProps
               {/* ── Card Header (always visible) ── */}
               <button
                 type="button"
-                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-inset"
+                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
                 onClick={() => toggleCard(rowIndex)}
               >
-                <div className="flex items-center gap-3 min-w-0">
+                <div className="flex min-w-0 items-center gap-3">
                   {/* STT badge */}
                   {headerColumns[0] && (
                     <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">
@@ -152,7 +167,9 @@ export default function Table({ columns, dataSource, onColumnClick }: TableProps
               {/* ── Expandable Details ── */}
               <div
                 className={`transition-all duration-200 ease-in-out ${
-                  isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+                  isExpanded
+                    ? "max-h-[2000px] opacity-100"
+                    : "max-h-0 opacity-0"
                 } overflow-hidden`}
               >
                 <div className="border-t border-gray-100 px-4 py-3">
@@ -163,8 +180,8 @@ export default function Table({ columns, dataSource, onColumnClick }: TableProps
                         <dt className="text-xs font-medium uppercase tracking-wider text-gray-500">
                           {col.title}
                         </dt>
-                        <dd className="mt-0.5 text-sm text-gray-900 break-words">
-                          {item[col.dataIndex] ?? '—'}
+                        <dd className="mt-0.5 break-words text-sm text-gray-900">
+                          {item[col.dataIndex] ?? "—"}
                         </dd>
                       </div>
                     ))}
@@ -185,7 +202,7 @@ export default function Table({ columns, dataSource, onColumnClick }: TableProps
                   {onColumnClick && (
                     <button
                       type="button"
-                      className="mt-3 w-full rounded-md bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-100 transition-colors"
+                      className="mt-3 w-full rounded-md bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-600 transition-colors hover:bg-indigo-100"
                       onClick={() => onColumnClick(item)}
                     >
                       Xem chi tiết →

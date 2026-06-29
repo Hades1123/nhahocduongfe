@@ -59,11 +59,7 @@ const init: IUserInformation & { isEdit: boolean } = {
   isEdit: false,
 };
 
-const UserInformationForm = ({
-  isEdit = false,
-  userId,
-  onSuccess,
-}: Props) => {
+const UserInformationForm = ({ isEdit = false, userId, onSuccess }: Props) => {
   // Fetch roles for dropdown
   const { data: roles = [] } = useQuery<IRole[]>(
     "getRolesForForm",
@@ -178,9 +174,7 @@ const UserInformationForm = ({
           placeholder="Nhập tên"
           value={formik.values.firstName}
           onChange={formik.handleChange}
-          error={
-            formik.touched.firstName ? formik.errors.firstName : undefined
-          }
+          error={formik.touched.firstName ? formik.errors.firstName : undefined}
           required
         />
         <Input
@@ -203,9 +197,7 @@ const UserInformationForm = ({
           value={formik.values.phoneNumber}
           onChange={formik.handleChange}
           error={
-            formik.touched.phoneNumber
-              ? formik.errors.phoneNumber
-              : undefined
+            formik.touched.phoneNumber ? formik.errors.phoneNumber : undefined
           }
         />
         <Input
@@ -214,9 +206,7 @@ const UserInformationForm = ({
           type="date"
           value={formik.values.birthDate}
           onChange={formik.handleChange}
-          error={
-            formik.touched.birthDate ? formik.errors.birthDate : undefined
-          }
+          error={formik.touched.birthDate ? formik.errors.birthDate : undefined}
         />
       </div>
 
@@ -228,9 +218,7 @@ const UserInformationForm = ({
           type="password"
           value={formik.values.password}
           onChange={formik.handleChange}
-          error={
-            formik.touched.password ? formik.errors.password : undefined
-          }
+          error={formik.touched.password ? formik.errors.password : undefined}
           required={!isEdit}
         />
         <Input
@@ -241,9 +229,7 @@ const UserInformationForm = ({
           value={formik.values.rePassword}
           onChange={formik.handleChange}
           error={
-            formik.touched.rePassword
-              ? formik.errors.rePassword
-              : undefined
+            formik.touched.rePassword ? formik.errors.rePassword : undefined
           }
           required={!isEdit}
         />
@@ -262,8 +248,8 @@ const UserInformationForm = ({
             const ids = Array.isArray(selected)
               ? selected.map((s) => s.value)
               : selected
-                ? [selected.value]
-                : [];
+              ? [selected.value]
+              : [];
             formik.setFieldValue("roleIds", ids);
           }}
           getOptionLabel={(option) => option.label}

@@ -37,7 +37,9 @@ const ExamScheduleManager = () => {
   // Fetch campaign info
   const fetchCampaign = async () => {
     try {
-      const res = await api.get<IExamCampaign>(`/api/exam-campaigns/${campaignId}`);
+      const res = await api.get<IExamCampaign>(
+        `/api/exam-campaigns/${campaignId}`,
+      );
       setCampaign(res.data);
     } catch (err) {
       console.error(err);
@@ -54,10 +56,15 @@ const ExamScheduleManager = () => {
     try {
       const res = await api.get("/api/areas/lookup?region=SOUTH");
       const list = res.data || [];
-      const options = list.map((prov: any) => ({
-        value: prov,
-        label: prov.name.replace(/^(Tỉnh|Thành phố|Quận|Huyện|Phường|Xã)\s+/, ""),
-      })).sort((a: any, b: any) => a.label.localeCompare(b.label));
+      const options = list
+        .map((prov: any) => ({
+          value: prov,
+          label: prov.name.replace(
+            /^(Tỉnh|Thành phố|Quận|Huyện|Phường|Xã)\s+/,
+            "",
+          ),
+        }))
+        .sort((a: any, b: any) => a.label.localeCompare(b.label));
       setProvinces(options);
     } catch (err) {
       console.error(err);
@@ -67,7 +74,9 @@ const ExamScheduleManager = () => {
   // Fetch schools using organization search
   const fetchSchools = async () => {
     try {
-      const res = await api.get("/api/organization/search?size=1000&sort=name,asc");
+      const res = await api.get(
+        "/api/organization/search?size=1000&sort=name,asc",
+      );
       const list = res.data?.content || [];
       const options = list.map((school: any) => ({
         value: school,
@@ -88,7 +97,9 @@ const ExamScheduleManager = () => {
   // Fetch current schedules for this campaign
   const fetchSchedules = async () => {
     try {
-      const res = await api.get<IExamSchedule[]>(`/api/exam-campaigns/${campaignId}/schedules`);
+      const res = await api.get<IExamSchedule[]>(
+        `/api/exam-campaigns/${campaignId}/schedules`,
+      );
       setSchedules(res.data || []);
     } catch (err) {
       console.error(err);
@@ -126,8 +137,12 @@ const ExamScheduleManager = () => {
     if (selectedSchoolOption && selectedSchoolOption.value) {
       const school = selectedSchoolOption.value;
       const classesMap = school.classes || {};
-      const flatClasses: string[] = Object.values(classesMap).flat() as string[];
-      const sortedClasses = Array.from(new Set(flatClasses.filter(Boolean))).sort();
+      const flatClasses: string[] = Object.values(
+        classesMap,
+      ).flat() as string[];
+      const sortedClasses = Array.from(
+        new Set(flatClasses.filter(Boolean)),
+      ).sort();
       const options = sortedClasses.map((cls) => ({
         value: cls,
         label: cls,
@@ -143,15 +158,27 @@ const ExamScheduleManager = () => {
   const handleSaveSchedule = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSchoolOption) {
-      Swal.fire({ icon: "warning", title: "Cảnh báo", text: "Vui lòng chọn trường học!" });
+      Swal.fire({
+        icon: "warning",
+        title: "Cảnh báo",
+        text: "Vui lòng chọn trường học!",
+      });
       return;
     }
     if (!selectedClassOption) {
-      Swal.fire({ icon: "warning", title: "Cảnh báo", text: "Vui lòng chọn lớp học!" });
+      Swal.fire({
+        icon: "warning",
+        title: "Cảnh báo",
+        text: "Vui lòng chọn lớp học!",
+      });
       return;
     }
     if (!examDate) {
-      Swal.fire({ icon: "warning", title: "Cảnh báo", text: "Vui lòng chọn ngày khám!" });
+      Swal.fire({
+        icon: "warning",
+        title: "Cảnh báo",
+        text: "Vui lòng chọn ngày khám!",
+      });
       return;
     }
 
@@ -183,7 +210,11 @@ const ExamScheduleManager = () => {
     }
   };
 
-  const handleDeleteSchedule = (scheduleId: number, className: string, schoolName: string) => {
+  const handleDeleteSchedule = (
+    scheduleId: number,
+    className: string,
+    schoolName: string,
+  ) => {
     Swal.fire({
       title: "Xác nhận xóa lịch?",
       html: `Bạn có chắc chắn muốn xóa lịch khám cho lớp <b>${className}</b> - <b>${schoolName}</b> không?`,
@@ -197,7 +228,9 @@ const ExamScheduleManager = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await api.delete(`/api/exam-campaigns/${campaignId}/schedules/${scheduleId}`);
+          await api.delete(
+            `/api/exam-campaigns/${campaignId}/schedules/${scheduleId}`,
+          );
           Swal.fire({
             icon: "success",
             title: "Xóa lịch khám thành công!",
@@ -206,7 +239,8 @@ const ExamScheduleManager = () => {
           });
           fetchSchedules();
         } catch (err: any) {
-          const msg = err?.response?.data?.message || "Không thể xóa lịch khám!";
+          const msg =
+            err?.response?.data?.message || "Không thể xóa lịch khám!";
           Swal.fire({
             icon: "error",
             title: "Lỗi",
@@ -223,10 +257,19 @@ const ExamScheduleManager = () => {
     schoolClass: data.schoolClass,
     examDate: data.examDate,
     action: (
-      <span className="flex justify-center items-center" onClick={(e) => e.stopPropagation()}>
+      <span
+        className="flex items-center justify-center"
+        onClick={(e) => e.stopPropagation()}
+      >
         <TrashIcon
           className="h-6 w-6 cursor-pointer text-red-600 hover:text-red-800"
-          onClick={() => handleDeleteSchedule(data.id!, data.schoolClass, data.organizationName || "")}
+          onClick={() =>
+            handleDeleteSchedule(
+              data.id!,
+              data.schoolClass,
+              data.organizationName || "",
+            )
+          }
         />
       </span>
     ),
@@ -238,7 +281,7 @@ const ExamScheduleManager = () => {
       <div className="flex items-center gap-3">
         <button
           onClick={() => navigate("/exam-campaign")}
-          className="inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-100 text-gray-700 transition-colors"
+          className="inline-flex items-center justify-center rounded-md p-2 text-gray-700 transition-colors hover:bg-gray-100"
         >
           <ArrowLeftIcon className="h-5 w-5" />
         </button>
@@ -252,10 +295,10 @@ const ExamScheduleManager = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Left Side: Scheduling Form */}
-        <Card className="lg:col-span-1 h-fit">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">
+        <Card className="h-fit lg:col-span-1">
+          <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-gray-900">
             Thêm lịch khám mới
           </h2>
           <form onSubmit={handleSaveSchedule} className="flex flex-col gap-4">
@@ -305,12 +348,12 @@ const ExamScheduleManager = () => {
 
         {/* Right Side: List of Schedules */}
         <Card className="lg:col-span-2">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">
+          <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-gray-900">
             Danh sách lịch khám của đợt
           </h2>
           <Table columns={columns} dataSource={dataSource} />
           {dataSource.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
+            <div className="py-8 text-center text-gray-500">
               Chưa có lịch khám nào được lập cho đợt khám này.
             </div>
           )}

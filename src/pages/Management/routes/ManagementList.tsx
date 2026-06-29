@@ -1,6 +1,10 @@
 import { api } from "@/api/api";
 import { TableColumn } from "@/components/Table/type";
-import { PencilSquareIcon, XMarkIcon, AcademicCapIcon } from "@heroicons/react/24/outline";
+import {
+  PencilSquareIcon,
+  XMarkIcon,
+  AcademicCapIcon,
+} from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import { Tooltip } from "@mui/material";
 import Button from "@/components/Button";
@@ -60,7 +64,10 @@ const ManagementList = (props: Props) => {
   }>({});
   // State quản lý modal lớp học
   const [isOpenClassModal, setIsOpenClassModal] = useState<boolean>(false);
-  const [selectedOrgForClass, setSelectedOrgForClass] = useState<{ id: any; name: string } | null>(null);
+  const [selectedOrgForClass, setSelectedOrgForClass] = useState<{
+    id: any;
+    name: string;
+  } | null>(null);
 
   const userInfor = getLocalUserInfo();
   const organizationType = userInfor?.organization?.type;
@@ -80,7 +87,7 @@ const ManagementList = (props: Props) => {
         <Tooltip title="Quản lý lớp học" placement="top">
           <button
             onClick={() => handleOpenClassModal(data.id, data.name)}
-            className="inline-flex items-center gap-1.5 rounded-md border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors cursor-pointer"
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700 transition-colors hover:bg-indigo-100"
           >
             <AcademicCapIcon className="h-4 w-4" />
             Quản lý lớp

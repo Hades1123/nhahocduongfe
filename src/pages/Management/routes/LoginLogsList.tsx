@@ -57,21 +57,21 @@ const LoginLogsList = () => {
     const formatDate = (dateStr: string | null) => {
       if (!dateStr) return "-";
       const date = new Date(dateStr);
-      return date.toLocaleString('vi-VN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
+      return date.toLocaleString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
       });
     };
 
     const renderStatus = () => {
       if (data.logoutTime) {
-        return <span className="text-red-500 font-medium">Đã đăng xuất</span>;
+        return <span className="font-medium text-red-500">Đã đăng xuất</span>;
       }
-      return <span className="text-green-600 font-medium">Đã đăng nhập</span>;
+      return <span className="font-medium text-green-600">Đã đăng nhập</span>;
     };
 
     return {
@@ -94,8 +94,8 @@ const LoginLogsList = () => {
           aria-current="page"
           className={
             curPage === i + 1
-              ? "relative z-10 inline-flex items-center bg-indigo-600 px-4 py-2 text-sm font-semibold text-white cursor-pointer"
-              : "relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 cursor-pointer"
+              ? "relative z-10 inline-flex cursor-pointer items-center bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"
+              : "relative inline-flex cursor-pointer items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
           }
         >
           {i + 1}
@@ -115,32 +115,43 @@ const LoginLogsList = () => {
         <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
           <div className="flex flex-1 justify-between sm:hidden">
             <a
-              onClick={() => (curPage === 1 ? {} : setCurPage((old) => old - 1))}
-              className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer"
+              onClick={() =>
+                curPage === 1 ? {} : setCurPage((old) => old - 1)
+              }
+              className="relative inline-flex cursor-pointer items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Previous
             </a>
             <a
-              onClick={() => (curPage === totalPage ? {} : setCurPage((old) => old + 1))}
-              className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer"
+              onClick={() =>
+                curPage === totalPage ? {} : setCurPage((old) => old + 1)
+              }
+              className="relative ml-3 inline-flex cursor-pointer items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Next
             </a>
           </div>
           <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-center">
             <div>
-              <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+              <nav
+                className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+                aria-label="Pagination"
+              >
                 <a
-                  onClick={() => (curPage === 1 ? {} : setCurPage((old) => old - 1))}
-                  className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 cursor-pointer"
+                  onClick={() =>
+                    curPage === 1 ? {} : setCurPage((old) => old - 1)
+                  }
+                  className="relative inline-flex cursor-pointer items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                 >
                   <span className="sr-only">Previous</span>
                   &lt;
                 </a>
                 {paging()}
                 <a
-                  onClick={() => (curPage === totalPage ? {} : setCurPage((old) => old + 1))}
-                  className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 cursor-pointer"
+                  onClick={() =>
+                    curPage === totalPage ? {} : setCurPage((old) => old + 1)
+                  }
+                  className="relative inline-flex cursor-pointer items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                 >
                   <span className="sr-only">Next</span>
                   &gt;

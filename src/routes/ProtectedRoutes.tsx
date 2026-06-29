@@ -19,7 +19,10 @@ import Superset_BC1 from "@/pages/Superset_BC1";
 import { Navigate, Outlet, useRoutes } from "react-router-dom";
 import jwt_decode from "jwt-decode";
 import DentalArticles from "@/pages/DentalArticles";
-import { ExamCampaignList, ExamScheduleManager } from "@/pages/ExamCampaign/routes";
+import {
+  ExamCampaignList,
+  ExamScheduleManager,
+} from "@/pages/ExamCampaign/routes";
 
 const ProtectedRoutes = (): React.ReactElement<
   any,

@@ -109,7 +109,7 @@ export default function Navbar() {
                           "inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm",
                           "font-medium text-white hover:border-gray-300 hover:text-gray-50",
                           location.pathname === item.slug &&
-                          "border-white font-semibold ",
+                            "border-white font-semibold ",
                         )}
                       >
                         {item.title}
@@ -121,7 +121,7 @@ export default function Navbar() {
                       className={twMerge(
                         "relative ml-3 inline-flex items-center border-b-2 border-transparent px-1 pt-1 hover:border-gray-300",
                         location.pathname === slugs.report1 &&
-                        "border-white font-semibold",
+                          "border-white font-semibold",
                       )}
                     >
                       {/* <Menu.Button>
@@ -243,8 +243,8 @@ export default function Navbar() {
                     className={twMerge(
                       "block border-l-4 py-2 pl-3 pr-4 text-base font-medium",
                       location.pathname === item.slug
-                        ? "border-white bg-indigo-700 text-white font-semibold"
-                        : "border-transparent text-white hover:bg-indigo-500 hover:text-gray-50"
+                        ? "border-white bg-indigo-700 font-semibold text-white"
+                        : "border-transparent text-white hover:bg-indigo-500 hover:text-gray-50",
                     )}
                   >
                     {item.title}

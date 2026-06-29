@@ -6,7 +6,11 @@ import Card from "@/components/Card";
 import Input from "@/components/Input";
 import Table from "@/components/Table";
 import { TableColumn } from "@/components/Table/type";
-import { PencilSquareIcon, TrashIcon, CalendarDaysIcon } from "@heroicons/react/24/outline";
+import {
+  PencilSquareIcon,
+  TrashIcon,
+  CalendarDaysIcon,
+} from "@heroicons/react/24/outline";
 import { Tooltip } from "@mui/material";
 import Swal from "sweetalert2";
 import CampaignFormModal from "../components/CampaignFormModal";
@@ -28,10 +32,12 @@ const ExamCampaignList = () => {
   const [campaigns, setCampaigns] = useState<IExamCampaign[]>([]);
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCampaignId, setSelectedCampaignId] = useState<number | undefined>(undefined);
+  const [selectedCampaignId, setSelectedCampaignId] = useState<
+    number | undefined
+  >(undefined);
 
   const fetchCampaigns = async () => {
     setLoading(true);
@@ -118,15 +124,21 @@ const ExamCampaignList = () => {
     }
 
     return (
-      <span className={twMerge("inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset", classes)}>
+      <span
+        className={twMerge(
+          "inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset",
+          classes,
+        )}
+      >
         {status}
       </span>
     );
   };
 
-  const filteredCampaigns = campaigns.filter((c) =>
-    c.name.toLowerCase().includes(searchText.toLowerCase()) ||
-    (c.description || "").toLowerCase().includes(searchText.toLowerCase())
+  const filteredCampaigns = campaigns.filter(
+    (c) =>
+      c.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      (c.description || "").toLowerCase().includes(searchText.toLowerCase()),
   );
 
   const dataSource = filteredCampaigns.map((data, idx) => ({
@@ -137,7 +149,10 @@ const ExamCampaignList = () => {
     endDate: data.endDate,
     description: data.description || "—",
     action: (
-      <span className="flex justify-center items-center gap-3" onClick={(e) => e.stopPropagation()}>
+      <span
+        className="flex items-center justify-center gap-3"
+        onClick={(e) => e.stopPropagation()}
+      >
         <Tooltip title="Lập lịch" placement="top">
           <CalendarDaysIcon
             className="h-6 w-6 cursor-pointer text-indigo-600 hover:text-indigo-800"
@@ -163,7 +178,7 @@ const ExamCampaignList = () => {
   return (
     <div className="mt-5 flex flex-col gap-5 sm:px-6">
       {/* Header and Controls */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <h1 className="text-2xl font-bold text-gray-900">Danh sách đợt khám</h1>
         <Button onClick={handleCreate}>Thêm đợt khám mới</Button>
       </div>
@@ -181,7 +196,7 @@ const ExamCampaignList = () => {
       <Card>
         <Table columns={columns} dataSource={dataSource} />
         {dataSource.length === 0 && !loading && (
-          <div className="text-center py-8 text-gray-500">
+          <div className="py-8 text-center text-gray-500">
             Không tìm thấy đợt khám nào.
           </div>
         )}

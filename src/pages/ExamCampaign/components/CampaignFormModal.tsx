@@ -22,11 +22,15 @@ const validationSchema = Yup.object({
   startDate: Yup.string().required("Ngày bắt đầu không được để trống"),
   endDate: Yup.string()
     .required("Ngày kết thúc không được để trống")
-    .test("compare-dates", "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu", function (value) {
-      const { startDate } = this.parent;
-      if (!startDate || !value) return true;
-      return new Date(value) >= new Date(startDate);
-    }),
+    .test(
+      "compare-dates",
+      "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu",
+      function (value) {
+        const { startDate } = this.parent;
+        if (!startDate || !value) return true;
+        return new Date(value) >= new Date(startDate);
+      },
+    ),
   description: Yup.string(),
 });
 
@@ -37,7 +41,12 @@ const statusOptions = [
   { value: "Đã hủy", label: "Đã hủy" },
 ];
 
-const CampaignFormModal = ({ isOpen, setIsOpen, campaignId, onSuccess }: Props) => {
+const CampaignFormModal = ({
+  isOpen,
+  setIsOpen,
+  campaignId,
+  onSuccess,
+}: Props) => {
   const isEdit = !!campaignId;
 
   const formik = useFormik<IExamCampaign>({
@@ -71,7 +80,8 @@ const CampaignFormModal = ({ isOpen, setIsOpen, campaignId, onSuccess }: Props) 
         setIsOpen(false);
         onSuccess && onSuccess();
       } catch (err: any) {
-        const msg = err?.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại!";
+        const msg =
+          err?.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại!";
         Swal.fire({
           icon: "error",
           title: "Lỗi",
@@ -108,7 +118,7 @@ const CampaignFormModal = ({ isOpen, setIsOpen, campaignId, onSuccess }: Props) 
       title={isEdit ? "Cập nhật đợt khám" : "Thêm đợt khám mới"}
     >
       <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Input
             name="name"
             label="Tên đợt khám"
@@ -124,23 +134,32 @@ const CampaignFormModal = ({ isOpen, setIsOpen, campaignId, onSuccess }: Props) 
             label="Trạng thái"
             placeholder="Chọn trạng thái"
             options={statusOptions}
-            value={statusOptions.find((opt) => opt.value === formik.values.campaignStatus) || statusOptions[0]}
+            value={
+              statusOptions.find(
+                (opt) => opt.value === formik.values.campaignStatus,
+              ) || statusOptions[0]
+            }
             onChange={(selected) => {
-              formik.setFieldValue("campaignStatus", selected ? selected.value : "Sắp tới");
+              formik.setFieldValue(
+                "campaignStatus",
+                selected ? selected.value : "Sắp tới",
+              );
             }}
             getOptionLabel={(option) => option.label}
             required
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Input
             name="startDate"
             label="Ngày bắt đầu"
             type="date"
             value={formik.values.startDate}
             onChange={formik.handleChange}
-            error={formik.touched.startDate ? formik.errors.startDate : undefined}
+            error={
+              formik.touched.startDate ? formik.errors.startDate : undefined
+            }
             required
           />
 
@@ -161,7 +180,9 @@ const CampaignFormModal = ({ isOpen, setIsOpen, campaignId, onSuccess }: Props) 
           placeholder="Nhập mô tả chi tiết đợt khám"
           value={formik.values.description}
           onChange={formik.handleChange}
-          error={formik.touched.description ? formik.errors.description : undefined}
+          error={
+            formik.touched.description ? formik.errors.description : undefined
+          }
         />
 
         <div className="mt-6 flex justify-end gap-3">
@@ -172,9 +193,7 @@ const CampaignFormModal = ({ isOpen, setIsOpen, campaignId, onSuccess }: Props) 
           >
             Hủy
           </Button>
-          <Button type="submit">
-            {isEdit ? "Cập nhật" : "Lưu"}
-          </Button>
+          <Button type="submit">{isEdit ? "Cập nhật" : "Lưu"}</Button>
         </div>
       </form>
     </Modal>
