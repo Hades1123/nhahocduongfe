@@ -2,6 +2,7 @@ import { api } from "@/api/api";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import jwt_decode from "jwt-decode";
+import { isAxiosError } from "axios";
 
 type AuthStore = {
   isAuthenticated: boolean;
@@ -40,7 +41,11 @@ const useAuthStore = create<AuthStore, any>(
 
         localStorage.setItem("username", userName);
       } catch (error) {
-        throw new Error("Error");
+        if (isAxiosError(error)) {
+          throw new Error(error.response?.data?.error || "Đăng nhập thất bại");
+        } else {
+          throw new Error("Đăng nhập thất bại");
+        }
       }
     },
     guestLogin: async () => {
@@ -54,7 +59,11 @@ const useAuthStore = create<AuthStore, any>(
 
         localStorage.setItem("username", userName);
       } catch (error) {
-        throw new Error("Error");
+        if (isAxiosError(error)) {
+          throw new Error(error.response?.data?.error || "Đăng nhập thất bại");
+        } else {
+          throw new Error("Đăng nhập thất bại");
+        }
       }
     },
     logout: async () => {

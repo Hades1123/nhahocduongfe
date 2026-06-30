@@ -34,7 +34,7 @@ const Login = () => {
     } catch (err) {
       Swal.fire({
         icon: "error",
-        title: "Không thể kết nối dịch vụ Guest. Vui lòng thử lại.",
+        title: (err as Error).message,
       });
     } finally {
       setIsGuestLoading(false);
@@ -65,7 +65,7 @@ const Login = () => {
       } catch (err) {
         Swal.fire({
           icon: "error",
-          title: "Tên đăng nhập hoặc mật khẩu không đúng",
+          title: (err as Error).message,
         });
       } finally {
         setIsLoading(false);
