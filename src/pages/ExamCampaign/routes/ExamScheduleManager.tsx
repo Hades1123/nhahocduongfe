@@ -33,10 +33,12 @@ const ExamScheduleManager = () => {
   const [selectedClassOption, setSelectedClassOption] = useState<any>(null);
   const [examDate, setExamDate] = useState("");
   const [schedules, setSchedules] = useState<IExamSchedule[]>([]);
+  const [tableLoading, setTableLoading] = useState<boolean>(false);
 
   // Fetch campaign info
   const fetchCampaign = async () => {
     try {
+      setTableLoading(true);
       const res = await api.get<IExamCampaign>(
         `/api/exam-campaigns/${campaignId}`,
       );
@@ -48,6 +50,8 @@ const ExamScheduleManager = () => {
         title: "Lỗi",
         text: "Không thể tải thông tin đợt khám!",
       });
+    } finally {
+      setTableLoading(false);
     }
   };
 
@@ -351,7 +355,11 @@ const ExamScheduleManager = () => {
           <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-gray-900">
             Danh sách lịch khám của đợt
           </h2>
-          <Table columns={columns} dataSource={dataSource} />
+          <Table
+            columns={columns}
+            dataSource={dataSource}
+            loading={tableLoading}
+          />
           {dataSource.length === 0 && (
             <div className="py-8 text-center text-gray-500">
               Chưa có lịch khám nào được lập cho đợt khám này.

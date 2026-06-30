@@ -56,16 +56,19 @@ const AccountRegistrationList = () => {
   const [searchText, setSearchText] = useState<string>("");
   const [reFetching, setReFetching] = useState<boolean>(false);
   const itemsPerPage = 10;
-
+  const [tableLoading, setTableLoading] = useState<boolean>(false);
   // Fetch waiting users from API
   const fetchRegistrations = useCallback(async () => {
     try {
+      setTableLoading(true);
       const response = await userApi.getWaitingUsers();
       const users = response.data || [];
       setAllData(users);
     } catch (err) {
       console.error("Failed to fetch waiting users:", err);
       setAllData([]);
+    } finally {
+      setTableLoading(false);
     }
   }, []);
 
@@ -276,7 +279,11 @@ const AccountRegistrationList = () => {
       </div>
 
       <Card>
-        <Table columns={columns} dataSource={dataSource} />
+        <Table
+          columns={columns}
+          dataSource={dataSource}
+          loading={tableLoading}
+        />
       </Card>
 
       {/* Pagination */}

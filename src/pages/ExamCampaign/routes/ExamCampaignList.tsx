@@ -31,7 +31,6 @@ const ExamCampaignList = () => {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState<IExamCampaign[]>([]);
   const [searchText, setSearchText] = useState("");
-  const [loading, setLoading] = useState(false);
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,8 +38,11 @@ const ExamCampaignList = () => {
     number | undefined
   >(undefined);
 
+  // Table state
+  const [tableLoading, setTableLoading] = useState<boolean>(false);
+
   const fetchCampaigns = async () => {
-    setLoading(true);
+    setTableLoading(true);
     try {
       const res = await api.get<IExamCampaign[]>("/api/exam-campaigns");
       setCampaigns(res.data || []);
@@ -52,7 +54,7 @@ const ExamCampaignList = () => {
         text: "Không thể tải danh sách đợt khám!",
       });
     } finally {
-      setLoading(false);
+      setTableLoading(false);
     }
   };
 
@@ -194,8 +196,12 @@ const ExamCampaignList = () => {
 
       {/* Campaign Table */}
       <Card>
-        <Table columns={columns} dataSource={dataSource} />
-        {dataSource.length === 0 && !loading && (
+        <Table
+          columns={columns}
+          dataSource={dataSource}
+          loading={tableLoading}
+        />
+        {dataSource.length === 0 && !tableLoading && (
           <div className="py-8 text-center text-gray-500">
             Không tìm thấy đợt khám nào.
           </div>

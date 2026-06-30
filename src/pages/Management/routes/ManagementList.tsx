@@ -62,6 +62,7 @@ const ManagementList = (props: Props) => {
     areaCode?: string;
     searchText?: string;
   }>({});
+  const [tableLoading, setTableLoading] = useState<boolean>(false);
   // State quản lý modal lớp học
   const [isOpenClassModal, setIsOpenClassModal] = useState<boolean>(false);
   const [selectedOrgForClass, setSelectedOrgForClass] = useState<{
@@ -184,11 +185,18 @@ const ManagementList = (props: Props) => {
       queryParams.append("areaCode", activeFilters.areaCode);
     if (activeFilters.searchText)
       queryParams.append("searchText", activeFilters.searchText);
+    setTableLoading(true);
     api
       .get(`/api/organization/search`, { params: queryParams })
       .then((response) => {
         setTotalPage(response.data.totalPages);
         setDataFetching(response.data.content);
+      })
+      .catch((err) => {
+        console.error(err);
+      })
+      .finally(() => {
+        setTableLoading(false);
       });
   }, [curPage, activeFilters, refreshKey]);
 
@@ -294,7 +302,11 @@ const ManagementList = (props: Props) => {
           </>
         ) : null}
         <Card>
-          <Table columns={columns} dataSource={dataSource} />
+          <Table
+            columns={columns}
+            dataSource={dataSource}
+            loading={tableLoading}
+          />
         </Card>
         {/* paging */}
         {!organizationType ? (

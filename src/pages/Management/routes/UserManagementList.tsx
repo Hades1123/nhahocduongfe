@@ -58,9 +58,11 @@ const UserManagementList = () => {
   const [searchText, setSearchText] = useState<string>("");
   const userInfor = getLocalUserInfo();
   const organizationType = userInfor?.organization?.type;
+  const [tableLoading, setTableLoading] = useState<boolean>(false);
 
   const fetchUsers = useCallback(async (page: number, search?: string) => {
     try {
+      setTableLoading(true);
       const res = await userApi.getAll();
       if (res.status === 200) {
         let data = res.data;
@@ -81,6 +83,8 @@ const UserManagementList = () => {
       }
     } catch (err) {
       console.error("Failed to fetch users:", err);
+    } finally {
+      setTableLoading(false);
     }
   }, []);
 
@@ -265,7 +269,11 @@ const UserManagementList = () => {
           </>
         ) : null}
         <Card>
-          <Table columns={columns} dataSource={dataSource} />
+          <Table
+            columns={columns}
+            dataSource={dataSource}
+            loading={tableLoading}
+          />
         </Card>
 
         {/* Pagination */}

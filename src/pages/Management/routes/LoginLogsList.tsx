@@ -35,9 +35,11 @@ const LoginLogsList = () => {
   const [curPage, setCurPage] = useState(1);
   const [totalPage, setTotalPage] = useState(0);
   const [dataFetching, setDataFetching] = useState<any[]>([]);
+  const [tableLoading, setTableLoading] = useState<boolean>(false);
 
   const fetchLogs = useCallback(async (page: number) => {
     try {
+      setTableLoading(true);
       const res = await userApi.getLoginLogs();
       if (res.status === 200) {
         const data = res.data;
@@ -46,6 +48,8 @@ const LoginLogsList = () => {
       }
     } catch (err) {
       console.error("Failed to fetch login logs:", err);
+    } finally {
+      setTableLoading(false);
     }
   }, []);
 
@@ -108,7 +112,11 @@ const LoginLogsList = () => {
   return (
     <div className="flex flex-col gap-8 sm:px-6">
       <Card>
-        <Table columns={columns} dataSource={dataSource} />
+        <Table
+          columns={columns}
+          dataSource={dataSource}
+          loading={tableLoading}
+        />
       </Card>
 
       {totalPage > 1 && (
