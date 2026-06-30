@@ -1,5 +1,6 @@
-import { useState, useEffect, isValidElement } from "react";
+import { useState, useEffect, isValidElement, Fragment } from "react";
 import { TableColumn } from "./type";
+import { CircularProgress } from "@mui/material";
 
 interface TableProps {
   columns?: TableColumn[];
@@ -48,6 +49,7 @@ export default function Table({
   columns,
   dataSource,
   onColumnClick,
+  loading = false,
 }: TableProps) {
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
 
@@ -84,143 +86,154 @@ export default function Table({
 
   return (
     <>
-      {/* ═══════════════ DESKTOP TABLE (≥1024px) ═══════════════ */}
-      <div className="flow-root hidden lg:block">
-        <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-          <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-              <table className="min-w-full cursor-pointer divide-y divide-gray-300">
-                <thead className="bg-indigo-500 text-center text-white">
-                  <tr>
-                    {columns?.map((column, index) => (
-                      <>
-                        <th
-                          key={index}
-                          scope="col"
-                          className="py-3.5 pl-4 pr-3 text-center text-sm font-semibold sm:pl-6"
-                        >
-                          {column.title}
-                        </th>
-                      </>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 bg-white text-center">
-                  {dataSource?.map((item, index) => (
-                    <tr
-                      key={index}
-                      className="even:bg-gray-50 hover:bg-gray-100"
-                      onClick={(e) => onColumnClick && onColumnClick(item)}
-                    >
-                      {columns?.map((column, index) => {
-                        return (
-                          <td
-                            key={column.key ? column.key : index}
-                            className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6"
-                          >
-                            {item[column.dataIndex]}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+      {loading ? (
+        <div className="flex items-center justify-center gap-4">
+          <CircularProgress aria-label="Loading…" />
+          <span>Đang tải dữ liệu...</span>
         </div>
-      </div>
-
-      {/* ═══════════════ TABLET & MOBILE CARDS (<1024px) ═══════════════ */}
-      <div className="flex flex-col gap-3 lg:hidden">
-        {dataSource?.map((item, rowIndex) => {
-          const isExpanded = expandedCards.has(rowIndex);
-
-          return (
-            <div
-              key={rowIndex}
-              className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md"
-            >
-              {/* ── Card Header (always visible) ── */}
-              <button
-                type="button"
-                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
-                onClick={() => toggleCard(rowIndex)}
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  {/* STT badge */}
-                  {headerColumns[0] && (
-                    <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">
-                      {item[headerColumns[0].dataIndex]}
-                    </span>
-                  )}
-                  {/* Primary identifier */}
-                  {headerColumns[1] && (
-                    <span className="truncate text-sm font-semibold text-gray-900">
-                      {item[headerColumns[1].dataIndex]}
-                    </span>
-                  )}
-                </div>
-                <ChevronIcon expanded={isExpanded} />
-              </button>
-
-              {/* ── Expandable Details ── */}
-              <div
-                className={`transition-all duration-200 ease-in-out ${
-                  isExpanded
-                    ? "max-h-[2000px] opacity-100"
-                    : "max-h-0 opacity-0"
-                } overflow-hidden`}
-              >
-                <div className="border-t border-gray-100 px-4 py-3">
-                  {/* All detail columns as label-value pairs */}
-                  <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    {detailColumns.map((col, colIdx) => (
-                      <div key={colIdx} className="flex flex-col py-1">
-                        <dt className="text-xs font-medium uppercase tracking-wider text-gray-500">
-                          {col.title}
-                        </dt>
-                        <dd className="mt-0.5 break-words text-sm text-gray-900">
-                          {item[col.dataIndex] ?? "—"}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-
-                  {/* Action buttons */}
-                  {actionColumns.length > 0 && (
-                    <div className="mt-3 flex items-center gap-3 border-t border-gray-100 pt-3">
-                      {actionColumns.map((col, colIdx) => (
-                        <div key={colIdx} onClick={(e) => e.stopPropagation()}>
-                          {item[col.dataIndex]}
-                        </div>
+      ) : (
+        <>
+          {/* ═══════════════ DESKTOP TABLE (≥1024px) ═══════════════ */}
+          <div className="flow-root hidden lg:block">
+            <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+              <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                  <table className="min-w-full cursor-pointer divide-y divide-gray-300">
+                    <thead className="bg-indigo-500 text-center text-white">
+                      <tr>
+                        {columns?.map((column, index) => (
+                          <Fragment key={index}>
+                            <th
+                              scope="col"
+                              className="py-3.5 pl-4 pr-3 text-center text-sm font-semibold sm:pl-6"
+                            >
+                              {column.title}
+                            </th>
+                          </Fragment>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 bg-white text-center">
+                      {dataSource?.map((item, index) => (
+                        <tr
+                          key={index}
+                          className="even:bg-gray-50 hover:bg-gray-100"
+                          onClick={(e) => onColumnClick && onColumnClick(item)}
+                        >
+                          {columns?.map((column, index) => {
+                            return (
+                              <td
+                                key={column.key ? column.key : index}
+                                className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6"
+                              >
+                                {item[column.dataIndex]}
+                              </td>
+                            );
+                          })}
+                        </tr>
                       ))}
-                    </div>
-                  )}
-
-                  {/* Row click action */}
-                  {onColumnClick && (
-                    <button
-                      type="button"
-                      className="mt-3 w-full rounded-md bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-600 transition-colors hover:bg-indigo-100"
-                      onClick={() => onColumnClick(item)}
-                    >
-                      Xem chi tiết →
-                    </button>
-                  )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
-          );
-        })}
-
-        {/* Empty state */}
-        {(!dataSource || dataSource.length === 0) && (
-          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 text-center text-sm text-gray-500">
-            Không có dữ liệu
           </div>
-        )}
-      </div>
+
+          {/* ═══════════════ TABLET & MOBILE CARDS (<1024px) ═══════════════ */}
+          <div className="flex flex-col gap-3 lg:hidden">
+            {dataSource?.map((item, rowIndex) => {
+              const isExpanded = expandedCards.has(rowIndex);
+
+              return (
+                <div
+                  key={rowIndex}
+                  className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+                >
+                  {/* ── Card Header (always visible) ── */}
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+                    onClick={() => toggleCard(rowIndex)}
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      {/* STT badge */}
+                      {headerColumns[0] && (
+                        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">
+                          {item[headerColumns[0].dataIndex]}
+                        </span>
+                      )}
+                      {/* Primary identifier */}
+                      {headerColumns[1] && (
+                        <span className="truncate text-sm font-semibold text-gray-900">
+                          {item[headerColumns[1].dataIndex]}
+                        </span>
+                      )}
+                    </div>
+                    <ChevronIcon expanded={isExpanded} />
+                  </button>
+
+                  {/* ── Expandable Details ── */}
+                  <div
+                    className={`transition-all duration-200 ease-in-out ${
+                      isExpanded
+                        ? "max-h-[2000px] opacity-100"
+                        : "max-h-0 opacity-0"
+                    } overflow-hidden`}
+                  >
+                    <div className="border-t border-gray-100 px-4 py-3">
+                      {/* All detail columns as label-value pairs */}
+                      <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        {detailColumns.map((col, colIdx) => (
+                          <div key={colIdx} className="flex flex-col py-1">
+                            <dt className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                              {col.title}
+                            </dt>
+                            <dd className="mt-0.5 break-words text-sm text-gray-900">
+                              {item[col.dataIndex] ?? "—"}
+                            </dd>
+                          </div>
+                        ))}
+                      </dl>
+
+                      {/* Action buttons */}
+                      {actionColumns.length > 0 && (
+                        <div className="mt-3 flex items-center gap-3 border-t border-gray-100 pt-3">
+                          {actionColumns.map((col, colIdx) => (
+                            <div
+                              key={colIdx}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {item[col.dataIndex]}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Row click action */}
+                      {onColumnClick && (
+                        <button
+                          type="button"
+                          className="mt-3 w-full rounded-md bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-600 transition-colors hover:bg-indigo-100"
+                          onClick={() => onColumnClick(item)}
+                        >
+                          Xem chi tiết →
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Empty state */}
+            {(!dataSource || dataSource.length === 0) && (
+              <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 text-center text-sm text-gray-500">
+                Không có dữ liệu
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </>
   );
 }

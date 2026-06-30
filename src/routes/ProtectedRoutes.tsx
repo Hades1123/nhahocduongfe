@@ -1,6 +1,5 @@
 import Layout from "@/components/Layout";
 import { slugs } from "@/constants/slugs";
-import Dashboard from "@/pages/Dashboard";
 import DentalRecordForm from "@/pages/DentalRecord/components/DentalRecordForm";
 import DentalRecord from "@/pages/DentalRecord/routes";
 import Logout from "@/pages/Logout";

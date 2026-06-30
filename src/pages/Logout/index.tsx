@@ -1,5 +1,5 @@
 import useAuthStore from "@/stores/authStore";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface Props {}

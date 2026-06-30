@@ -90,8 +90,8 @@ const PatientList = (props: Props) => {
   const [classOptions, setClassOptions] = useState<any>();
   const [schoolOptions, setSchoolOptions] = useState<any>();
   const [searchText, setSearchText] = useState("");
-  const [school, setSchool] = useState<any>();
-  const [classes, setClasses] = useState<any>();
+  const [school, setSchool] = useState<any>(null);
+  const [classes, setClasses] = useState<any>(null);
   const [medicalDayRange, setMedicalDayRange] = useState<any>([
     new Date(),
     new Date(),
@@ -100,9 +100,10 @@ const PatientList = (props: Props) => {
   const [totalPage, setTotalPage] = useState<number>(0);
   const [reFetching, setReFetching] = useState<boolean>(false);
   const [listProvince, setListProvince] = useState<any>([]);
-  const [province, setProvince] = useState<any>();
+  const [province, setProvince] = useState<any>(null);
   const userInfor = getLocalUserInfo();
   const organizationType = userInfor?.organization?.type;
+  const [tableLoading, setTableLoading] = useState<boolean>(false);
 
   function flattenObject(obj: any) {
     const flattenedArray = [];
@@ -432,6 +433,7 @@ const PatientList = (props: Props) => {
 
   function fetchData(page: number) {
     const queryParams = filterParam();
+    setTableLoading(true);
     api
       .get(`/api/patient/search?sort=id,desc&page=${page - 1}`, {
         params: queryParams,
@@ -444,6 +446,9 @@ const PatientList = (props: Props) => {
       })
       .catch((err) => {
         throw err;
+      })
+      .finally(() => {
+        setTableLoading(false);
       });
   }
 
@@ -572,6 +577,7 @@ const PatientList = (props: Props) => {
           columns={columns}
           dataSource={dataSource}
           onColumnClick={(record: IpatientList) => handleColumnClick(record)}
+          loading={tableLoading}
         />
       </Card>
       <PaginationTable

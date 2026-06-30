@@ -47,7 +47,8 @@ function Select<T>({
 
     // ── Compact multi mode ──
     if (isCompactActive && Array.isArray(selected)) {
-      if (selected.length === 1) return renderOption(selected[0], getOptionLabel);
+      if (selected.length === 1)
+        return renderOption(selected[0], getOptionLabel);
       const compactFn = getCompactLabel ?? getOptionLabel;
       const firstLabel =
         typeof compactFn === "function"
@@ -75,7 +76,7 @@ function Select<T>({
   return (
     <div className={twMerge("relative w-72", fullWidth && "w-full", className)}>
       <Listbox
-        value={value}
+        value={value ?? null}
         onChange={onChange}
         disabled={disabled}
         multiple={multiple}
@@ -91,7 +92,9 @@ function Select<T>({
           {required && <span className="text-red-500">*</span>}
         </Listbox.Label>
         <Listbox.Button className="relative min-h-[36px] w-full cursor-default rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm">
-          <span className="flex flex-wrap gap-1">{renderSelected(value)}</span>
+          <span className="flex flex-wrap gap-1">
+            {renderSelected(value ?? null)}
+          </span>
           <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
             <ChevronUpDownIcon
               className="h-5 w-5 text-gray-400"
@@ -147,32 +150,29 @@ function Select<T>({
       )}
 
       {/* ── Tag chips below dropdown (compactMulti mode) ── */}
-      {isCompactActive &&
-        value &&
-        Array.isArray(value) &&
-        value.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {value.map((item: any, idx: number) => (
-              <span
-                key={idx}
-                className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700"
+      {isCompactActive && value && Array.isArray(value) && value.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {value.map((item: any, idx: number) => (
+            <span
+              key={idx}
+              className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700"
+            >
+              {renderOption(item, getOptionLabel)}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onRemoveItem?.(item);
+                }}
+                className="ml-0.5 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-indigo-500 hover:bg-indigo-200 hover:text-indigo-700 focus:outline-none"
               >
-                {renderOption(item, getOptionLabel)}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onRemoveItem?.(item);
-                  }}
-                  className="ml-0.5 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-indigo-500 hover:bg-indigo-200 hover:text-indigo-700 focus:outline-none"
-                >
-                  <XMarkIcon className="h-3 w-3" />
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
+                <XMarkIcon className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

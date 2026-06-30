@@ -35,7 +35,6 @@ const columns: TableColumn[] = [
   { title: "Thao tác", dataIndex: "action", isAction: true },
 ];
 
-
 /* ══════════════════════════════════════════════
    MAIN COMPONENT
    ══════════════════════════════════════════════ */
@@ -60,6 +59,7 @@ const ExamScheduleManager = () => {
 
   // ── Schedule list & pagination ──
   const [schedules, setSchedules] = useState<IExamSchedule[]>([]);
+  const [tableLoading, setTableLoading] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   /* ============================================
@@ -67,6 +67,7 @@ const ExamScheduleManager = () => {
      ============================================ */
   const fetchCampaign = async () => {
     try {
+      setTableLoading(true);
       const res = await api.get<IExamCampaign>(
         `/api/exam-campaigns/${campaignId}`,
       );
@@ -78,6 +79,8 @@ const ExamScheduleManager = () => {
         title: "Lỗi",
         text: "Không thể tải thông tin đợt khám!",
       });
+    } finally {
+      setTableLoading(false);
     }
   };
 
@@ -126,7 +129,7 @@ const ExamScheduleManager = () => {
   const fetchDentists = async () => {
     try {
       const res = await dentistApi.getAll();
-      console.log("Fetched dentists:", res.data.content); 
+      console.log("Fetched dentists:", res.data.content);
       const list: Dentist[] = res.data.content || [];
       const options: DentistOption[] = list.map((d: Dentist) => ({
         value: d.id,
@@ -183,7 +186,9 @@ const ExamScheduleManager = () => {
     if (selectedSchoolOption && selectedSchoolOption.value) {
       const school = selectedSchoolOption.value;
       const classesMap = school.classes || {};
-      const flatClasses: string[] = Object.values(classesMap).flat() as string[];
+      const flatClasses: string[] = Object.values(
+        classesMap,
+      ).flat() as string[];
       const sortedClasses = Array.from(
         new Set(flatClasses.filter(Boolean)),
       ).sort();
@@ -473,7 +478,11 @@ const ExamScheduleManager = () => {
           <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-gray-900">
             Danh sách lịch khám của đợt
           </h2>
-          <Table columns={columns} dataSource={paginatedData} />
+          <Table
+            columns={columns}
+            dataSource={paginatedData}
+            loading={tableLoading}
+          />
 
           {fullDataSource.length === 0 && (
             <div className="py-8 text-center text-gray-500">
