@@ -22,8 +22,9 @@ import {
   ExamCampaignList,
   ExamScheduleManager,
   ExamTracking,
-  ReExamList
+  ReExamList,
 } from "@/pages/ExamCampaign/routes";
+import Dashboard from "@/pages/Dashboard";
 
 const ProtectedRoutes = (): React.ReactElement<
   any,
