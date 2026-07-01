@@ -13,8 +13,15 @@ import Table from "@/components/Table";
 import Swal from "sweetalert2";
 import UserInformationForm from "../components/UserInformationForm";
 import Input from "@/components/Input";
+import Select from "@/components/Select";
 import { getLocalUserInfo } from "@/utils/storage";
 import { userApi } from "@/api/userApi";
+
+const statusOptions = [
+  { value: null, label: "None" },
+  { value: "active", label: "Hoạt động" },
+  { value: "locked", label: "Đã khóa" },
+];
 
 const columns: TableColumn[] = [
   {
@@ -56,45 +63,62 @@ const UserManagementList = () => {
   const [dataFetching, setDataFetching] = useState<any[]>([]);
   const [reFetching, setReFetching] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<any>(statusOptions[0]);
   const userInfor = getLocalUserInfo();
   const organizationType = userInfor?.organization?.type;
   const [tableLoading, setTableLoading] = useState<boolean>(false);
 
-  const fetchUsers = useCallback(async (page: number, search?: string) => {
-    try {
-      setTableLoading(true);
-      const res = await userApi.getAll();
-      if (res.status === 200) {
-        let data = res.data;
-        if (search) {
-          const s = search.toLowerCase();
-          data = data.filter(
-            (u: any) =>
-              (u.username || "").toLowerCase().includes(s) ||
-              (u.email || "").toLowerCase().includes(s) ||
-              (u.phoneNumber || "").toLowerCase().includes(s) ||
-              `${u.lastName || ""} ${u.firstName || ""}`
-                .toLowerCase()
-                .includes(s),
-          );
+  const fetchUsers = useCallback(
+    async (page: number, search?: string, status?: any) => {
+      try {
+        setTableLoading(true);
+        const res = await userApi.getAll();
+        if (res.status === 200) {
+          let data = res.data;
+          if (search) {
+            const s = search.toLowerCase();
+            data = data.filter(
+              (u: any) =>
+                (u.username || "").toLowerCase().includes(s) ||
+                (u.email || "").toLowerCase().includes(s) ||
+                (u.phoneNumber || "").toLowerCase().includes(s) ||
+                `${u.lastName || ""} ${u.firstName || ""}`
+                  .toLowerCase()
+                  .includes(s),
+            );
+          }
+          if (status && status.value) {
+            if (status.value === "active") {
+              data = data.filter((u: any) => u.status !== false);
+            } else if (status.value === "locked") {
+              data = data.filter((u: any) => u.status === false);
+            }
+          }
+          setTotalPage(Math.ceil(data.length / 10) || 1);
+          setDataFetching(data.slice((page - 1) * 10, page * 10));
         }
-        setTotalPage(Math.ceil(data.length / 10) || 1);
-        setDataFetching(data.slice((page - 1) * 10, page * 10));
+      } catch (err) {
+        console.error("Failed to fetch users:", err);
+      } finally {
+        setTableLoading(false);
       }
-    } catch (err) {
-      console.error("Failed to fetch users:", err);
-    } finally {
-      setTableLoading(false);
-    }
-  }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
-    fetchUsers(curPage, searchText);
+    fetchUsers(curPage, searchText, statusFilter);
   }, [curPage, reFetching, fetchUsers]);
 
   const handleSearch = () => {
     setCurPage(1);
-    fetchUsers(1, searchText);
+    fetchUsers(1, searchText, statusFilter);
+  };
+
+  const handleStatusChange = (option: any) => {
+    setStatusFilter(option);
+    setCurPage(1);
+    fetchUsers(1, searchText, option);
   };
 
   const dataSource = dataFetching.map((data: any, idx: number) => ({
@@ -250,9 +274,11 @@ const UserManagementList = () => {
       <div className="flex flex-col gap-8 sm:px-6">
         {!organizationType ? (
           <>
-            <div className="grid grid-cols-2">
+            <div className="flex items-end justify-between">
               <div className="flex gap-3">
+                <Button onClick={handleSearch}>Tìm kiếm</Button>
                 <Input
+                  className="min-w-[450px]"
                   placeholder="Nhập tài khoản, họ tên, email, SĐT"
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
@@ -260,7 +286,12 @@ const UserManagementList = () => {
                     if (e.key === "Enter") handleSearch();
                   }}
                 />
-                <Button onClick={handleSearch}>Tìm kiếm</Button>
+                <Select
+                  className="min-w-[180px]"
+                  options={statusOptions}
+                  value={statusFilter}
+                  onChange={handleStatusChange}
+                />
               </div>
               <div className="flex justify-end">
                 <Button onClick={handleCreate}>Tạo mới người dùng</Button>

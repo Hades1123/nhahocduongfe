@@ -7,7 +7,16 @@ import Card from "@/components/Card";
 import Table from "@/components/Table";
 import Swal from "sweetalert2";
 import Input from "@/components/Input";
+import Select from "@/components/Select";
+import { DateRangePicker } from "rsuite";
+import moment from "moment";
 import { userApi } from "@/api/userApi";
+
+const accountTypeOptions = [
+  { value: null, label: "None" },
+  { value: "doctor", label: "Bác sĩ" },
+  { value: "school", label: "Trường học" },
+];
 
 const columns: TableColumn[] = [
   {
@@ -54,6 +63,9 @@ const AccountRegistrationList = () => {
   const [dataFetching, setDataFetching] = useState<any[]>([]);
   const [allData, setAllData] = useState<any[]>([]);
   const [searchText, setSearchText] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [createdDateRange, setCreatedDateRange] = useState<any>([null, null]);
+  const [accountTypeFilter, setAccountTypeFilter] = useState<any>(accountTypeOptions[0]);
   const [reFetching, setReFetching] = useState<boolean>(false);
   const itemsPerPage = 10;
   const [tableLoading, setTableLoading] = useState<boolean>(false);
@@ -81,19 +93,38 @@ const AccountRegistrationList = () => {
     let filtered = allData;
 
     // Search filter
-    if (searchText) {
+    if (searchQuery) {
       filtered = allData.filter(
         (item: any) =>
           (item.username || "")
             .toLowerCase()
-            .includes(searchText.toLowerCase()) ||
+            .includes(searchQuery.toLowerCase()) ||
           `${item.lastName || ""} ${item.firstName || ""}`
             .trim()
             .toLowerCase()
-            .includes(searchText.toLowerCase()) ||
-          (item.email || "").toLowerCase().includes(searchText.toLowerCase()) ||
-          (item.phoneNumber || "").includes(searchText),
+            .includes(searchQuery.toLowerCase()) ||
+          (item.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (item.phoneNumber || "").includes(searchQuery),
       );
+    }
+
+    // Date range filter
+    if (createdDateRange && createdDateRange[0] && createdDateRange[1]) {
+      const startDate = moment(createdDateRange[0]).startOf("day");
+      const endDate = moment(createdDateRange[1]).endOf("day");
+      filtered = filtered.filter((item: any) => {
+        if (!item.createdDate) return false;
+        const created = moment(item.createdDate);
+        return created.isBetween(startDate, endDate, null, "[]");
+      });
+    }
+
+    // Account type filter
+    if (accountTypeFilter && accountTypeFilter.value) {
+      filtered = filtered.filter((item: any) => {
+        const typeKey = getAccountTypeKey(item);
+        return typeKey === accountTypeFilter.value;
+      });
     }
 
     const total = Math.ceil(filtered.length / itemsPerPage);
@@ -102,9 +133,27 @@ const AccountRegistrationList = () => {
     const start = (curPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
     setDataFetching(filtered.slice(start, end));
-  }, [allData, searchText, curPage]);
+  }, [allData, searchQuery, createdDateRange, accountTypeFilter, curPage]);
 
   const handleSearch = () => {
+    setCurPage(1);
+    setSearchQuery(searchText);
+  };
+
+  const handleDateRangeOk = (values: any) => {
+    if (values) {
+      setCreatedDateRange(values);
+      setCurPage(1);
+    }
+  };
+
+  const handleDateRangeClean = () => {
+    setCreatedDateRange([null, null]);
+    setCurPage(1);
+  };
+
+  const handleAccountTypeChange = (option: any) => {
+    setAccountTypeFilter(option);
     setCurPage(1);
   };
 
@@ -167,6 +216,34 @@ const AccountRegistrationList = () => {
           });
       }
     });
+  };
+
+  const getAccountTypeKey = (data: any): string | null => {
+    const roleList = data.roleList || [];
+    if (roleList.length === 0) {
+      if (data.organization?.name) return "school";
+      return null;
+    }
+    const hasSchoolRole = roleList.some(
+      (r: any) =>
+        r.code?.toUpperCase() === "GUEST" ||
+        r.code?.toUpperCase() === "SCHOOL" ||
+        r.name?.toLowerCase().includes("trường") ||
+        r.name?.toLowerCase().includes("school"),
+    );
+    const hasDoctorRole = roleList.some(
+      (r: any) =>
+        r.code?.toUpperCase() === "DOCTOR" ||
+        r.code?.toUpperCase() === "DENTIST" ||
+        r.name?.toLowerCase().includes("bác sĩ") ||
+        r.name?.toLowerCase().includes("nha sĩ") ||
+        r.name?.toLowerCase().includes("nha khoa") ||
+        r.name?.toLowerCase().includes("doctor") ||
+        r.name?.toLowerCase().includes("dentist"),
+    );
+    if (hasSchoolRole) return "school";
+    if (hasDoctorRole) return "doctor";
+    return null;
   };
 
   const getAccountType = (data: any): string => {
@@ -264,9 +341,11 @@ const AccountRegistrationList = () => {
 
   return (
     <div className="flex flex-col gap-8 sm:px-6">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="flex items-end justify-between">
         <div className="flex gap-3">
+          <Button onClick={handleSearch}>Tìm kiếm</Button>
           <Input
+            className="min-w-[450px]"
             placeholder="Tìm tài khoản, họ tên, email, SĐT"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
@@ -274,8 +353,23 @@ const AccountRegistrationList = () => {
               if (e.key === "Enter") handleSearch();
             }}
           />
-          <Button onClick={handleSearch}>Tìm kiếm</Button>
+          <Select
+            className="min-w-[180px]"
+            options={accountTypeOptions}
+            value={accountTypeFilter}
+            onChange={handleAccountTypeChange}
+          />
         </div>
+        <DateRangePicker
+          style={{ width: "280px" }}
+          placeholder={"dd/mm/yyyy - dd/mm/yyyy"}
+          format={"dd/MM/yyyy"}
+          onChange={(e) => setCreatedDateRange(e)}
+          onClean={handleDateRangeClean}
+          onOk={handleDateRangeOk}
+          placement="auto"
+          value={createdDateRange}
+        />
       </div>
 
       <Card>

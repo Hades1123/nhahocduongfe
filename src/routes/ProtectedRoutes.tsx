@@ -8,6 +8,7 @@ import UserManagementList from "@/pages/Management/routes/UserManagementList";
 import AccountRegistrationList from "@/pages/Management/routes/AccountRegistrationList";
 import LoginLogsList from "@/pages/Management/routes/LoginLogsList";
 import HealthCheckModal from "@/pages/Patient/components/healthCheckHistoryModalForm";
+import Dashboard from "@/pages/Dashboard";
 import {
   PatientCreate,
   PatientDetail,
