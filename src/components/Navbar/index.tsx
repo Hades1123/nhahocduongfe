@@ -68,12 +68,11 @@ export default function Navbar() {
       <Disclosure as="nav" className="sticky top-0 z-50 bg-indigo-600 shadow">
         {({ open, close }) => (
           <>
-            {/* "mx-auto max-w-7xl px-2 sm:px-6 lg:px-8"  */}
             <div className="w-full px-2 sm:px-6 lg:px-8">
               <div className="relative flex h-16 justify-between">
                 <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
                   {/* Mobile menu button */}
-                  <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+                  <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-2 text-white hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
                     <span className="sr-only">Open main menu</span>
                     {open ? (
                       <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
@@ -97,7 +96,10 @@ export default function Navbar() {
                       src={logo}
                       alt="logo"
                     />
-                    Hệ thống quản lý nha học đường
+                    <span className="hidden sm:block">
+                      Hệ thống quản lý nha học đường
+                    </span>
+                    <span className="sm:hidden">Nha học đường</span>
                   </Link>
                   <div className="menuBar hidden sm:flex sm:flex-1 sm:items-center sm:justify-evenly sm:gap-2">
                     {filteredMenuItems.map((item) => (
@@ -202,7 +204,7 @@ export default function Navbar() {
                     className={twMerge(
                       "block border-l-4 py-2 pl-3 pr-4 text-base font-medium",
                       location.pathname === item.slug
-                        ? "border-white bg-indigo-700 font-semibold text-white"
+                        ? "border-white bg-white font-semibold text-indigo-600"
                         : "border-transparent text-white hover:bg-indigo-500 hover:text-gray-50",
                     )}
                   >
