@@ -169,8 +169,8 @@ const TeethOverall = React.forwardRef<HTMLDivElement, Props>(
     React.useImperativeHandle(ref, () => formik.values);
 
     return (
-      <div className="flex items-center justify-between p-4">
-        <div className="mr-6 w-1/2">
+      <div className="flex flex-col gap-6 p-4">
+        <div className="w-full">
           <div className="flex flex-col">
             <h2 className="mb-4 text-left text-lg font-bold">
               a. PI(chỉ số mảng bám)
@@ -244,7 +244,7 @@ const TeethOverall = React.forwardRef<HTMLDivElement, Props>(
           </div>
         </div>
 
-        <div className="ml-6 w-1/2">
+        <div className="w-full">
           <div className="flex flex-col">
             <h2 className="mb-4 text-left text-lg font-bold">
               b. CI (chỉ số vôi răng)

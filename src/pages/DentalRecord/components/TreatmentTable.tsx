@@ -392,7 +392,7 @@ const TreatmentTable = React.forwardRef<any, any>(
           dentistName: values.dentistName,
           medication: values.medication.value,
           medicationCode: values.medication.value,
-          tooth: toothForCreateExam[0].label,
+          tooth: String(values.diagnosis.value),
           createdDate: formatDate(new Date()),
         };
 

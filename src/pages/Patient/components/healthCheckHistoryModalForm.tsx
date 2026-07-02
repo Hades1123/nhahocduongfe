@@ -7,9 +7,10 @@ import ImageUploadBox from "@/components/ImageUploadBox";
 import Odontogram from "@/pages/DentalRecord/components/Odontogram";
 import TreatmentTable from "@/pages/DentalRecord/components/TreatmentTable";
 import React, { useRef, useState } from "react";
-import { useQuery, useQueryClient } from "react-query";
+import { useQuery, useMutation, useQueryClient } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import UpdateHeathCheckHistory from "./updateHeathCheckHistory";
+import CompareExamsView from "./CompareExamsView";
 import Confirm from "@/components/ConfirmDialog";
 import Swal from "sweetalert2";
 import TeethOverall from "@/pages/DentalRecord/components/TeethOverall";
@@ -50,19 +51,40 @@ const HealthCheckModal = (props: Props) => {
   const odontogramRef = useRef<any>(null);
   const treatmentTableRef = useRef<any>(null);
   const rowIndex = useRef<any>(null);
-  const [triggerSubmit, triggerDelete] = useState(false);
-  const [triggerUpdate, setTriggerUpdate] = useState(false);
-  const [triggerSumitOdo, setTriggerSumitOdo] = useState(false);
   const plaqueRef = useRef(null);
   const [open, setOpen] = useState(false);
+  const [examIdToDelete, setExamIdToDelete] = useState<any>(null);
   const [treatmentList, setTreatmentList] = useState([]);
-  const [triggerTreatment, setTriggerTreatment] = useState(false);
   const [selectedRecordId, setSelectedRecordId] = useState("");
   const [searchText, setSearchText] = useState<string>("");
   const [fromDate, setFromDate] = useState<any>();
   const [toDate, setToDate] = useState<any>();
   const [checked, setChecked] = useState<boolean>(false);
   const queryClient = useQueryClient();
+
+  // ── Compare Exams state ──
+  const [isCompareMode, setIsCompareMode] = useState(false);
+  const [selectedCompareExams, setSelectedCompareExams] = useState<any[]>([]);
+
+  const handleToggleCompare = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsCompareMode(e.target.checked);
+    setSelectedCompareExams([]);
+    setSelectedRecordId("");
+  };
+
+  const handleCompareSelection = (key: any, row: any) => {
+    setSelectedCompareExams((prev) => {
+      const isSelected = prev.some((item) => item.id === row.id);
+      if (isSelected) {
+        return prev.filter((item) => item.id !== row.id);
+      } else {
+        if (prev.length < 2) {
+          return [...prev, row];
+        }
+        return prev;
+      }
+    });
+  };
 
   // ── Sections 4, 5, 6 state ──
   const [examDetail, setExamDetail] = useState<any>(null);
@@ -74,70 +96,44 @@ const HealthCheckModal = (props: Props) => {
     { retry: false, refetchOnWindowFocus: false },
   );
 
-  const deleteHandle = (e: any) => {
-    // e.stopPropagation();
-    setTimeout(() => {
-      setOpen(true);
-    });
+  const deleteHandle = (row: any) => {
+    setExamIdToDelete(row.id);
+    setOpen(true);
   };
 
-  const [mappingSource, setMappingSource] = useState<any[]>([
+  const [mappingSource] = useState<any[]>([
     "id",
     "patientName",
     "date",
     "organizationName",
-
-    <Button onClick={(e) => deleteHandle(e)}>Xóa</Button>,
+    <div />,
   ]);
 
-  const {} = useQuery(
-    `updateTeethRecord`,
-    () =>
-      api
-        .post(`/api/patients/${id}/exams/${rowIndex.current}/teethRecord`, {
-          record: odontogramRef.current,
-        })
-        .then((response) => response.data.record),
-    { enabled: triggerSumitOdo, retry: false, refetchOnWindowFocus: false },
+  const teethMutation = useMutation(() =>
+    api.post(`/api/patients/${id}/exams/${rowIndex.current}/teethRecord`, {
+      record: odontogramRef.current,
+    })
   );
 
-  useQuery(
-    `/api/patients/${id}/exams/${rowIndex.current}/plaqueRecord`,
-    () =>
-      api.post(
-        `/api/patients/${id}/exams/${rowIndex.current}/plaqueRecord`,
-        mapping(plaqueRef.current).plaqueRecord,
-      ),
-    {
-      enabled: triggerSumitOdo,
-      refetchOnWindowFocus: false,
-    },
+  const plaqueMutation = useMutation(() =>
+    api.post(
+      `/api/patients/${id}/exams/${rowIndex.current}/plaqueRecord`,
+      mapping(plaqueRef.current).plaqueRecord,
+    )
   );
 
-  useQuery(
-    `/api/patients/${id}/exams/${rowIndex.current}/tartarRecord`,
-    () =>
-      api.post(
-        `/api/patients/${id}/exams/${rowIndex.current}/tartarRecord`,
-        mapping(plaqueRef.current).tartarRecord,
-      ),
-    {
-      enabled: triggerSumitOdo,
-      refetchOnWindowFocus: false,
-    },
+  const tartarMutation = useMutation(() =>
+    api.post(
+      `/api/patients/${id}/exams/${rowIndex.current}/tartarRecord`,
+      mapping(plaqueRef.current).tartarRecord,
+    )
   );
 
-  useQuery(
-    "treatmentRecord",
-    () =>
-      api.post(
-        `/api/patients/${id}/exams/${rowIndex.current}/treatmentRecord`,
-        treatmentList,
-      ),
-    {
-      enabled: triggerTreatment,
-      refetchOnWindowFocus: false,
-    },
+  const treatmentMutation = useMutation(() =>
+    api.post(
+      `/api/patients/${id}/exams/${rowIndex.current}/treatmentRecord`,
+      treatmentList,
+    )
   );
 
   function padTo2Digits(num: number) {
@@ -152,67 +148,20 @@ const HealthCheckModal = (props: Props) => {
     ].join("-");
   }
 
-  const {} = useQuery(
-    ["updateRecord"],
-    () =>
-      api
-        .put(`/api/patients/${id}/exams`, {
-          id: rowIndex.current,
-          dentistId: 2,
-          organizationId: patient.organization?.id
-            ? patient.organization.id
-            : 1,
-          schoolClass: patient.schoolClass,
-          date: formatDate(new Date()),
-          year: new Date().getFullYear(),
-          useVecniFlour: checked,
-        })
-        .then(async () => {
-          await setTriggerSumitOdo(true);
-          await setTriggerTreatment(true);
-          await Swal.fire({
-            icon: "success",
-            html: "Chỉnh sửa phiếu khám thành công!",
-          });
-          navigate(0);
-        })
-        .catch(() =>
-          Swal.fire({
-            icon: "error",
-            html: "Chỉnh sửa phiếu khám không thành công!",
-          }),
-        ),
-    {
-      enabled: triggerUpdate,
-      refetchOnWindowFocus: false,
-      retry: false,
-    },
+  const updateExamMutation = useMutation((payload: any) =>
+    api.put(`/api/patients/${id}/exams`, payload)
   );
 
-  useQuery(
-    ["deleteRecord", rowIndex.current],
-    () =>
-      api
-        .delete(`/api/exams/${rowIndex.current}`)
-        .then(async () => {
-          await Swal.fire({
-            icon: "success",
-            title: "Xoá thành công",
-          });
-          navigate(0);
-        })
-        .catch(() => {
-          Swal.fire({
-            icon: "error",
-            title: "Xoá không thành công",
-          });
-        })
-        .finally(() => triggerDelete(false)),
-    {
-      enabled: triggerSubmit,
-      refetchOnWindowFocus: false,
-    },
+  const deleteExamMutation = useMutation((examId: any) =>
+    api.delete(`/api/exams/${examId}`)
   );
+
+  const isSubmitting =
+    updateExamMutation.isLoading ||
+    teethMutation.isLoading ||
+    plaqueMutation.isLoading ||
+    tartarMutation.isLoading ||
+    treatmentMutation.isLoading;
 
   const handleBack = () => {
     Swal.fire({
@@ -289,7 +238,41 @@ const HealthCheckModal = (props: Props) => {
       reverseButtons: true,
     }).then(async (result) => {
       if (result.isConfirmed) {
-        await setTriggerUpdate(true);
+        try {
+          // 1. Update main exam record
+          const payload = {
+            id: rowIndex.current,
+            dentistId: 2,
+            organizationId: patient.organization?.id ? patient.organization.id : 1,
+            schoolClass: patient.schoolClass,
+            date: formatDate(new Date()),
+            year: new Date().getFullYear(),
+            useVecniFlour: checked,
+          };
+          await updateExamMutation.mutateAsync(payload);
+
+          // 2. Wait for all sub-records to complete before showing success
+          await Promise.all([
+            teethMutation.mutateAsync(),
+            plaqueMutation.mutateAsync(),
+            tartarMutation.mutateAsync(),
+            treatmentMutation.mutateAsync(),
+          ]);
+
+          await Swal.fire({
+            icon: "success",
+            html: "Chỉnh sửa phiếu khám thành công!",
+          });
+          queryClient.invalidateQueries(`/api/patients/${id}/exams`);
+          if (examsRef.current) {
+            examsRef.current.refetch();
+          }
+        } catch (error) {
+          Swal.fire({
+            icon: "error",
+            html: "Chỉnh sửa phiếu khám không thành công!",
+          });
+        }
       }
     });
   };
@@ -307,47 +290,39 @@ const HealthCheckModal = (props: Props) => {
 
   // ── PATCH: Cập nhật ảnh (mục 6) ──
   const handleImageUploaded = async (
-    side: "before" | "after",
+    side: "upper" | "lower",
     publicUrl: string,
     uploadedAt: string
   ) => {
     if (!selectedRecordId) return;
     const body: any = {};
-    if (side === "before") {
-      body.imageBeforeUrl = publicUrl;
-      body.imageBeforeTime = uploadedAt;
+    if (side === "upper") {
+      body.imageUpperUrl = publicUrl;
+      body.imageUpperTime = uploadedAt;
     } else {
-      body.imageAfterUrl = publicUrl;
-      body.imageAfterTime = uploadedAt;
+      body.imageLowerUrl = publicUrl;
+      body.imageLowerTime = uploadedAt;
     }
     await api.patch(`/api/exams/${selectedRecordId}/images`, body);
     // Refresh exam detail
     setExamDetail((prev: any) => ({
       ...prev,
-      ...(side === "before"
-        ? { imageBeforeUrl: publicUrl, imageBeforeTime: uploadedAt }
-        : { imageAfterUrl: publicUrl, imageAfterTime: uploadedAt }),
+      ...(side === "upper"
+        ? { imageUpperUrl: publicUrl, imageUpperTime: uploadedAt }
+        : { imageLowerUrl: publicUrl, imageLowerTime: uploadedAt }),
     }));
   };
 
-  // ── PATCH: Xóa ảnh (mục 6) ──
-  const handleImageDeleted = async (side: "before" | "after") => {
+  // ── DELETE: Xóa ảnh (mục 6) ──
+  const handleImageDeleted = async (side: "upper" | "lower") => {
     if (!selectedRecordId) return;
-    const body: any = {};
-    if (side === "before") {
-      body.imageBeforeUrl = null;
-      body.imageBeforeTime = null;
-    } else {
-      body.imageAfterUrl = null;
-      body.imageAfterTime = null;
-    }
-    await api.patch(`/api/exams/${selectedRecordId}/images`, body);
+    await api.delete(`/api/exams/${selectedRecordId}/images/${side}`);
     // Refresh exam detail
     setExamDetail((prev: any) => ({
       ...prev,
-      ...(side === "before"
-        ? { imageBeforeUrl: null, imageBeforeTime: null }
-        : { imageAfterUrl: null, imageAfterTime: null }),
+      ...(side === "upper"
+        ? { imageUpperUrl: null, imageUpperTime: null }
+        : { imageLowerUrl: null, imageLowerTime: null }),
     }));
   };
 
@@ -380,8 +355,22 @@ const HealthCheckModal = (props: Props) => {
                 <div className="flex justify-end"></div>
               </div>
             </div>
-            <div className="mb-2 flex content-end justify-end">
-              <UpdateHeathCheckHistory onSuccess={handleRefresh} />
+            <div className="mb-2 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" className="sr-only peer" checked={isCompareMode} onChange={handleToggleCompare} />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                  <span className="ml-3 text-sm font-medium text-gray-900">So sánh phiếu khám</span>
+                </label>
+                {isCompareMode && (
+                   <span className="text-sm text-gray-500">
+                     (Đã chọn {selectedCompareExams.length}/2 phiếu)
+                   </span>
+                )}
+              </div>
+              <div className="flex content-end justify-end">
+                {!isCompareMode && <UpdateHeathCheckHistory onSuccess={handleRefresh} />}
+              </div>
             </div>
             <PaginationTable
               ref={examsRef}
@@ -389,11 +378,39 @@ const HealthCheckModal = (props: Props) => {
               headRows={heads}
               dataPath="data"
               mappingSource={mappingSource}
-              onRowSelected={handleRecordClicked}
+              onRowSelected={isCompareMode ? undefined : handleRecordClicked}
               searchValues={searchValues}
+              selectable={isCompareMode}
+              selectedKeys={selectedCompareExams.map(r => r.id)}
+              onSelectChange={handleCompareSelection}
+              maxSelect={2}
+              renderAction={(row: any) => (
+                isCompareMode ? null : (
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteHandle(row);
+                    }}
+                  >
+                    Xóa
+                  </Button>
+                )
+              )}
             />
           </>
         </Card>
+        {isCompareMode ? (
+          selectedCompareExams.length === 2 ? (
+            <CompareExamsView
+               patientId={id || ""}
+               examIds={selectedCompareExams.map(e => String(e.id))}
+            />
+          ) : (
+            <div className="p-8 text-center text-gray-500 border rounded-lg bg-gray-50">
+               Vui lòng chọn đủ 2 phiếu khám để so sánh.
+            </div>
+          )
+        ) : (
         <Card header="1. Tình trạng răng">
           {!selectedRecordId ? (
             <div className="pl-4">* Chọn phiếu khám để xem chi tiết.</div>
@@ -451,45 +468,50 @@ const HealthCheckModal = (props: Props) => {
                 }
               />
 
-              {/* ── Section 6: Ảnh thực tế trước & sau điều trị ── */}
+              {/* ── Section 6: Ảnh thực tế hàm trên và hàm dưới ── */}
               <Divider />
               <h1 className="text-lg font-bold">
-                6. Ảnh thực tế trước và sau điều trị
+                6. Ảnh thực tế hàm trên và hàm dưới
               </h1>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <ImageUploadBox
-                  label="Ảnh trước điều trị"
-                  folder="before"
-                  imageUrl={examDetail?.imageBeforeUrl}
-                  imageTime={examDetail?.imageBeforeTime}
+                  label="Ảnh hàm trên"
+                  folder="upper"
+                  imageUrl={examDetail?.imageUpperUrl}
+                  imageTime={examDetail?.imageUpperTime}
                   loading={detailLoading}
                   onUploaded={(url, time) =>
-                    handleImageUploaded("before", url, time)
+                    handleImageUploaded("upper", url, time)
                   }
-                  onDeleted={() => handleImageDeleted("before")}
+                  onDeleted={() => handleImageDeleted("upper")}
                 />
                 <ImageUploadBox
-                  label="Ảnh sau điều trị"
-                  folder="after"
-                  imageUrl={examDetail?.imageAfterUrl}
-                  imageTime={examDetail?.imageAfterTime}
+                  label="Ảnh hàm dưới"
+                  folder="lower"
+                  imageUrl={examDetail?.imageLowerUrl}
+                  imageTime={examDetail?.imageLowerTime}
                   loading={detailLoading}
                   onUploaded={(url, time) =>
-                    handleImageUploaded("after", url, time)
+                    handleImageUploaded("lower", url, time)
                   }
-                  onDeleted={() => handleImageDeleted("after")}
+                  onDeleted={() => handleImageDeleted("lower")}
                 />
               </div>
             </div>
           )}
           <div className="mt-5 flex justify-end gap-4">
             {selectedRecordId && (
-              <Button onClick={handleSubmit} variants="contained">
-                Chỉnh sửa phiếu khám
+              <Button
+                onClick={handleSubmit}
+                variants="contained"
+                isDisabled={isSubmitting}
+              >
+                {isSubmitting ? "Đang xử lý..." : "Chỉnh sửa phiếu khám"}
               </Button>
             )}
           </div>
         </Card>
+        )}
         <div className="flex justify-end gap-4">
           <Button onClick={handleBack} variants="outlined">
             Quay lại
@@ -498,9 +520,18 @@ const HealthCheckModal = (props: Props) => {
         <Confirm
           open={open}
           onClose={() => setOpen(false)}
-          onAccept={() => {
+          onAccept={async () => {
             setOpen(false);
-            triggerDelete(true);
+            if (examIdToDelete) {
+              try {
+                await deleteExamMutation.mutateAsync(examIdToDelete);
+                await Swal.fire({ icon: "success", title: "Xoá thành công" });
+                queryClient.invalidateQueries(`/api/patients/${id}/exams`);
+                if (examsRef.current) examsRef.current.refetch();
+              } catch (error) {
+                Swal.fire({ icon: "error", title: "Xoá không thành công" });
+              }
+            }
           }}
           title="Xác nhận xoá"
           content="Bạn chắc chắn muốn xoá bệnh án này, thao tác này không thể hoàn tác."

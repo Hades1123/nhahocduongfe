@@ -26,6 +26,12 @@ interface IPaginationService {
   totalPages?: number;
   onRowSelected?: (values: any) => void;
   searchValues?: any;
+  /** Render function for action column — receives the row data */
+  renderAction?: (row: any) => React.ReactNode;
+  selectable?: boolean;
+  selectedKeys?: any[];
+  onSelectChange?: (key: any, row: any) => void;
+  maxSelect?: number;
 }
 
 const TableCellStyled = styled(TableCell)(() => ({
@@ -80,7 +86,7 @@ const source = [
   "examPlace",
 ];
 
-const PaginationTable = React.forwardRef<any, any>(
+const PaginationTable = React.forwardRef<any, IPaginationService>(
   (
     {
       searchValues = "",
@@ -92,8 +98,13 @@ const PaginationTable = React.forwardRef<any, any>(
       havePagination = false,
       dataPath = "",
       onRowSelected,
+      renderAction,
+      selectable = false,
+      selectedKeys = [],
+      onSelectChange,
+      maxSelect,
       ...props
-    }: IPaginationService,
+    },
     ref: any,
   ) => {
     const location = useLocation();
@@ -174,6 +185,13 @@ const PaginationTable = React.forwardRef<any, any>(
       setDataAfterSort(dataSort);
     };
 
+    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>, indexStr: string, row: any) => {
+      e.stopPropagation();
+      if (onSelectChange) {
+        onSelectChange(row.id, row);
+      }
+    };
+
     if (error) return <div>Error...</div>;
 
     return (
@@ -184,6 +202,9 @@ const PaginationTable = React.forwardRef<any, any>(
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
               <TableHead>
                 <TableRow className="bg-indigo-500 text-center text-white">
+                  {selectable && (
+                    <TableCellStyled className="w-12 px-4 py-3.5"></TableCellStyled>
+                  )}
                   {headRows.map((row: string, index: number) => (
                     <TableCellStyled
                       className="py-3.5 pl-4 pr-3 text-white sm:pl-6 "
@@ -210,13 +231,29 @@ const PaginationTable = React.forwardRef<any, any>(
                 </TableRow>
               </TableHead>
               <TableBody>
-                {dataAfterSort?.map((row: any, index: number) => (
+                {dataAfterSort?.map((row: any, index: number) => {
+                  const isChecked = selectedKeys.includes(row.id);
+                  const disableCheck = !isChecked && maxSelect !== undefined && selectedKeys.length >= maxSelect;
+                  
+                  return (
                   <TableRow
                     onClick={() => handleClickRow(String(index), row)}
-                    selected={String(index) === String(selectedRow)}
+                    selected={String(index) === String(selectedRow) || isChecked}
                     key={index}
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                    className={isChecked ? "bg-indigo-50" : ""}
                   >
+                    {selectable && (
+                      <TableDataStyled className="w-12" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          disabled={disableCheck}
+                          onChange={(e) => handleCheckboxChange(e, String(index), row)}
+                          className="h-4 w-4 cursor-pointer rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        />
+                      </TableDataStyled>
+                    )}
                     {mappingSource.map((item: any, itemIndex: number) => {
                       const isElement = React.isValidElement(
                         get(mappingSource, itemIndex),
@@ -230,13 +267,14 @@ const PaginationTable = React.forwardRef<any, any>(
                           scope="row"
                         >
                           {isElement
-                            ? get(mappingSource, itemIndex)
+                            ? (renderAction ? renderAction(row) : get(mappingSource, itemIndex))
                             : get(row, get(mappingSource, itemIndex))}
                         </TableDataStyled>
                       );
                     })}
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </TableContainer>
@@ -249,24 +287,39 @@ const PaginationTable = React.forwardRef<any, any>(
               const primaryValue = get(row, get(mappingSource, 0));
               const secondaryValue = get(row, get(mappingSource, 1));
 
+              const isChecked = selectedKeys.includes(row.id);
+              const disableCheck = !isChecked && maxSelect !== undefined && selectedKeys.length >= maxSelect;
+
               return (
                 <div
                   key={index}
                   className={`overflow-hidden rounded-lg border bg-white shadow-sm transition-shadow hover:shadow-md ${
-                    String(index) === String(selectedRow)
+                    String(index) === String(selectedRow) || isChecked
                       ? "border-indigo-400 ring-2 ring-indigo-200"
                       : "border-gray-200"
-                  }`}
+                  } ${isChecked ? "bg-indigo-50" : ""}`}
                 >
                   {/* Card Header */}
-                  <button
-                    type="button"
-                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
-                    onClick={() => {
-                      toggleCard(index);
-                      handleClickRow(String(index), row);
-                    }}
-                  >
+                  <div className="flex w-full items-center gap-2 px-4 py-3">
+                    {selectable && (
+                      <div className="flex-shrink-0 mr-2" onClick={(e) => e.stopPropagation()}>
+                         <input
+                          type="checkbox"
+                          checked={isChecked}
+                          disabled={disableCheck}
+                          onChange={(e) => handleCheckboxChange(e, String(index), row)}
+                          className="h-4 w-4 cursor-pointer rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        />
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className="flex flex-1 items-center justify-between text-left focus:outline-none"
+                      onClick={() => {
+                        toggleCard(index);
+                        handleClickRow(String(index), row);
+                      }}
+                    >
                     <div className="flex min-w-0 items-center gap-3">
                       <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">
                         {index + 1}
@@ -282,8 +335,8 @@ const PaginationTable = React.forwardRef<any, any>(
                         )}
                       </div>
                     </div>
-                    <ChevronIcon expanded={isExpanded} />
-                  </button>
+                    </button>
+                  </div>
 
                   {/* Expandable Details */}
                   <div
@@ -300,7 +353,7 @@ const PaginationTable = React.forwardRef<any, any>(
                             get(mappingSource, itemIndex),
                           );
                           const value = isElement
-                            ? get(mappingSource, itemIndex)
+                            ? (renderAction ? renderAction(row) : get(mappingSource, itemIndex))
                             : get(row, get(mappingSource, itemIndex));
 
                           return (

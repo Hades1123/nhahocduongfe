@@ -16,7 +16,7 @@ interface ImageUploadBoxProps {
   label: string;
   imageUrl?: string | null;
   imageTime?: string | null;
-  folder: "before" | "after";
+  folder: "upper" | "lower";
   loading?: boolean;
   onUploaded: (publicUrl: string, uploadedAt: string) => Promise<void>;
   onDeleted: () => Promise<void>;
@@ -149,7 +149,7 @@ export default function ImageUploadBox({
             <img
               src={imageUrl}
               alt={label}
-              className="h-48 w-full object-cover"
+              className="aspect-square w-full object-cover"
               onError={(e) => {
                 (e.target as HTMLImageElement).src =
                   "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='150' fill='%23f3f4f6'><rect width='200' height='150'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='14'>Ảnh lỗi</text></svg>";
@@ -246,7 +246,7 @@ export default function ImageUploadBox({
           onDragLeave={onDragLeave}
           onDrop={onDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`flex h-48 cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed transition-colors ${
+          className={`flex aspect-square cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed transition-colors ${
             dragOver
               ? "border-indigo-500 bg-indigo-50"
               : "border-gray-300 bg-gray-50 hover:border-indigo-400 hover:bg-indigo-50/50"

@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { useQuery } from "react-query";
+import { useQuery, useMutation } from "react-query";
 import { useLocation } from "react-router-dom";
 import { api } from "@/api/api";
 import Button from "@/components/Button";
@@ -11,6 +11,7 @@ import TeethOverall from "@/pages/DentalRecord/components/TeethOverall";
 import TreatmentTable from "@/pages/DentalRecord/components/TreatmentTable";
 import Swal from "sweetalert2";
 import Checkbox from "@/components/Checkbox";
+import ImageUploadBox from "@/components/ImageUploadBox";
 
 interface Props {
   isShow: boolean;
@@ -39,38 +40,65 @@ const mapping = (values: any) => {
 
   return { plaqueRecord, tartarRecord };
 };
-const UpdateHealthCheckModal = React.forwardRef<any, any>(
-  ({ isShow, onClose, onSuccess }: Props, ref) => {
+const UpdateHealthCheckModal = React.forwardRef<any, Props>(
+  ({ isShow, onClose, onSuccess }, ref) => {
     const url = useLocation().pathname.split("/");
 
     const odontogramRef = useRef<any>(null);
     const treatmentRef = useRef(null);
     const plaqueRef = useRef(null);
 
-    const [triggerSumitOdo, setTriggerSumitOdo] = useState<boolean>(false);
-    const [triggerExam, setTriggerSumitExam] = useState<boolean>(false);
-    const [triggerTreatment, setTriggerTreatment] = useState<boolean>(false);
     const [treatmentList, setTreatmentList] = useState([]);
     const [checked, setChecked] = useState<boolean>(false);
     const [odontogramData, setOdontoGramData] = useState<any>();
 
+    // ── Section 4, 5, 6 state ──
+    const [pathologyAssessment, setPathologyAssessment] = useState<string>("");
+    const [treatmentNote, setTreatmentNote] = useState<string>("");
+    const [imageUpperUrl, setImageUpperUrl] = useState<string | null>(null);
+    const [imageUpperTime, setImageUpperTime] = useState<string | null>(null);
+    const [imageLowerUrl, setImageLowerUrl] = useState<string | null>(null);
+    const [imageLowerTime, setImageLowerTime] = useState<string | null>(null);
+
     const idExam = useRef();
 
-    const { data: teethRecordData } = useQuery(
-      `createTeethRecord`,
-      () =>
-        api
-          .post(
-            `/api/patients/${url[url.length - 2]}/exams/${
-              idExam.current
-            }/teethRecord`,
-            {
-              record: odontogramRef.current,
-            },
-          )
-          .then((response) => response.data.record),
-      { enabled: triggerSumitOdo, retry: false, refetchOnWindowFocus: false },
+    const teethMutation = useMutation((examId: any) =>
+      api.post(`/api/patients/${url[url.length - 2]}/exams/${examId}/teethRecord`, {
+        record: odontogramRef.current,
+      })
     );
+
+    const plaqueMutation = useMutation((examId: any) =>
+      api.post(
+        `/api/patients/${url[url.length - 2]}/exams/${examId}/plaqueRecord`,
+        mapping(plaqueRef.current).plaqueRecord,
+      )
+    );
+
+    const tartarMutation = useMutation((examId: any) =>
+      api.post(
+        `/api/patients/${url[url.length - 2]}/exams/${examId}/tartarRecord`,
+        mapping(plaqueRef.current).tartarRecord,
+      )
+    );
+
+    const treatmentMutation = useMutation((examId: any) =>
+      api.post(
+        `/api/patients/${url[url.length - 2]}/exams/${examId}/treatmentRecord`,
+        treatmentList,
+      )
+    );
+
+    const createExamMutation = useMutation((payload: any) =>
+      api.post(`/api/patients/${url[url.length - 2]}/exams`, payload)
+    );
+
+    const isSubmitting =
+      createExamMutation.isLoading ||
+      teethMutation.isLoading ||
+      plaqueMutation.isLoading ||
+      tartarMutation.isLoading ||
+      treatmentMutation.isLoading;
 
     const { data: patient } = useQuery(
       `/api/patient/${url[url.length - 2]}`,
@@ -79,55 +107,6 @@ const UpdateHealthCheckModal = React.forwardRef<any, any>(
           .get(`/api/patient/${url[url.length - 2]}`)
           .then((response) => response.data),
       { retry: false, refetchOnWindowFocus: false },
-    );
-
-    useQuery(
-      `/api/patients/${url[url.length - 2]}/exams/${
-        idExam.current
-      }/plaqueRecord`,
-      () =>
-        api.post(
-          `/api/patients/${url[url.length - 2]}/exams/${
-            idExam.current
-          }/plaqueRecord`,
-          mapping(plaqueRef.current).plaqueRecord,
-        ),
-      {
-        enabled: triggerSumitOdo,
-        refetchOnWindowFocus: false,
-      },
-    );
-
-    useQuery(
-      `/api/patients/${url[url.length - 2]}/exams/${
-        idExam.current
-      }/tartarRecord`,
-      () =>
-        api.post(
-          `/api/patients/${url[url.length - 2]}/exams/${
-            idExam.current
-          }/tartarRecord`,
-          mapping(plaqueRef.current).tartarRecord,
-        ),
-      {
-        enabled: triggerSumitOdo,
-        refetchOnWindowFocus: false,
-      },
-    );
-
-    useQuery(
-      "treatmentRecord",
-      () =>
-        api.post(
-          `/api/patients/${url[url.length - 2]}/exams/${
-            idExam.current
-          }/treatmentRecord`,
-          treatmentList,
-        ),
-      {
-        enabled: triggerTreatment,
-        refetchOnWindowFocus: false,
-      },
     );
 
     function padTo2Digits(num: number) {
@@ -142,38 +121,6 @@ const UpdateHealthCheckModal = React.forwardRef<any, any>(
       ].join("-");
     }
 
-    const { isLoading: createExamLoading } = useQuery(
-      `createExam`,
-      () =>
-        api
-          .post(`/api/patients/${url[url.length - 2]}/exams`, {
-            dentistId: 2,
-            organizationId: patient.organization?.id
-              ? patient.organization?.id
-              : 1,
-            schoolClass: patient.schoolClass,
-            date: formatDate(new Date()),
-            year: new Date().getFullYear(),
-            useVecniFlour: checked,
-          })
-          .then(async (response) => {
-            idExam.current = response.data.id;
-            await setTriggerSumitOdo(true);
-            await setTriggerTreatment(true);
-            Swal.fire({
-              icon: "success",
-              html: "Tạo phiếu khám thành công!",
-            });
-          })
-          .catch(() => {
-            Swal.fire({
-              icon: "error",
-              html: "Tạo phiếu khám không thành công!",
-            });
-          }),
-      { enabled: triggerExam, refetchOnWindowFocus: false, retry: false },
-    );
-
     const handleSubmit = () => {
       Swal.fire({
         icon: "info",
@@ -185,7 +132,57 @@ const UpdateHealthCheckModal = React.forwardRef<any, any>(
         reverseButtons: true,
       }).then(async (result) => {
         if (result.isConfirmed) {
-          await setTriggerSumitExam(true);
+          try {
+            const payload = {
+              dentistId: 2,
+              organizationId: patient?.organization?.id ? patient.organization.id : 1,
+              schoolClass: patient?.schoolClass,
+              date: formatDate(new Date()),
+              year: new Date().getFullYear(),
+              useVecniFlour: checked,
+            };
+
+            const response = await createExamMutation.mutateAsync(payload);
+            const newExamId = response.data.id;
+            idExam.current = newExamId;
+
+            await Promise.all([
+              teethMutation.mutateAsync(newExamId),
+              plaqueMutation.mutateAsync(newExamId),
+              tartarMutation.mutateAsync(newExamId),
+              treatmentMutation.mutateAsync(newExamId),
+            ]);
+
+            // ── PATCH: Sections 4 & 5 ──
+            if (pathologyAssessment || treatmentNote) {
+              await api.patch(`/api/exams/${newExamId}/assessment`, {
+                pathologyAssessment: pathologyAssessment || null,
+                treatmentNote: treatmentNote || null,
+              });
+            }
+
+            // ── PATCH: Section 6 ──
+            if (imageUpperUrl || imageLowerUrl) {
+              await api.patch(`/api/exams/${newExamId}/images`, {
+                imageUpperUrl: imageUpperUrl || null,
+                imageUpperTime: imageUpperTime || null,
+                imageLowerUrl: imageLowerUrl || null,
+                imageLowerTime: imageLowerTime || null,
+              });
+            }
+
+            await Swal.fire({
+              icon: "success",
+              html: "Tạo phiếu khám thành công!",
+            });
+            onSuccess && onSuccess();
+            onClose();
+          } catch (error) {
+            Swal.fire({
+              icon: "error",
+              html: "Tạo phiếu khám không thành công!",
+            });
+          }
         }
       });
     };
@@ -193,15 +190,6 @@ const UpdateHealthCheckModal = React.forwardRef<any, any>(
     const handleChange = () => {
       setChecked(!checked);
     };
-
-    !createExamLoading && teethRecordData && idExam.current && onClose();
-
-    !createExamLoading &&
-      teethRecordData &&
-      idExam.current &&
-      idExam.current &&
-      onSuccess &&
-      onSuccess();
 
     return (
       <>
@@ -225,10 +213,80 @@ const UpdateHealthCheckModal = React.forwardRef<any, any>(
                 <Checkbox
                   name="veneerFlour"
                   label="Bôi Veneer Flour"
-                  // onChange={formik.handleChange}
                   onChange={handleChange}
                   checked={checked}
                 />
+
+                {/* ── Section 4: Đánh giá mức độ bệnh lý ── */}
+                <Divider />
+                <h1 className="text-lg font-bold">
+                  4. Đánh giá mức độ bệnh lý
+                </h1>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-gray-700">
+                    Nội dung đánh giá
+                  </label>
+                  <textarea
+                    value={pathologyAssessment}
+                    onChange={(e) => setPathologyAssessment(e.target.value)}
+                    placeholder="Nhập đánh giá mức độ bệnh lý..."
+                    rows={3}
+                    className="w-full resize-y rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                  />
+                </div>
+
+                {/* ── Section 5: Ghi chú điều trị ── */}
+                <Divider />
+                <h1 className="text-lg font-bold">5. Ghi chú điều trị</h1>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-gray-700">
+                    Nội dung ghi chú
+                  </label>
+                  <textarea
+                    value={treatmentNote}
+                    onChange={(e) => setTreatmentNote(e.target.value)}
+                    placeholder="Nhập ghi chú điều trị..."
+                    rows={3}
+                    className="w-full resize-y rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                  />
+                </div>
+
+                {/* ── Section 6: Ảnh thực tế hàm trên và hàm dưới ── */}
+                <Divider />
+                <h1 className="text-lg font-bold">
+                  6. Ảnh thực tế hàm trên và hàm dưới
+                </h1>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <ImageUploadBox
+                    label="Ảnh hàm trên"
+                    folder="upper"
+                    imageUrl={imageUpperUrl}
+                    imageTime={imageUpperTime}
+                    onUploaded={async (publicUrl, uploadedAt) => {
+                      setImageUpperUrl(publicUrl);
+                      setImageUpperTime(uploadedAt);
+                    }}
+                    onDeleted={async () => {
+                      setImageUpperUrl(null);
+                      setImageUpperTime(null);
+                    }}
+                  />
+                  <ImageUploadBox
+                    label="Ảnh hàm dưới"
+                    folder="lower"
+                    imageUrl={imageLowerUrl}
+                    imageTime={imageLowerTime}
+                    onUploaded={async (publicUrl, uploadedAt) => {
+                      setImageLowerUrl(publicUrl);
+                      setImageLowerTime(uploadedAt);
+                    }}
+                    onDeleted={async () => {
+                      setImageLowerUrl(null);
+                      setImageLowerTime(null);
+                    }}
+                  />
+                </div>
+
                 <div className="flex justify-end">
                   <Button
                     onClick={onClose}
@@ -237,7 +295,12 @@ const UpdateHealthCheckModal = React.forwardRef<any, any>(
                   >
                     Huỷ
                   </Button>
-                  <Button onClick={handleSubmit}>Lưu</Button>
+                  <Button
+                    onClick={handleSubmit}
+                    isDisabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Đang xử lý..." : "Lưu"}
+                  </Button>
                 </div>
               </div>
             </Card>

@@ -11,7 +11,7 @@ const BUCKET_NAME = import.meta.env.VITE_BUCKET_NAME;
  */
 export async function uploadExamImage(
   file: File,
-  folder: "before" | "after"
+  folder: "upper" | "lower"
 ): Promise<{ publicUrl: string; uploadedAt: string }> {
   // Validate file type
   if (!file.type.startsWith("image/")) {
