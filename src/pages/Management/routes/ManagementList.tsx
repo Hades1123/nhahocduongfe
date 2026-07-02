@@ -145,10 +145,27 @@ const ManagementList = (props: Props) => {
     api.get("/api/areas/lookup?region=SOUTH").then((result) => {
       if (result) {
         const list = formatList(result.data);
-        setListProvince(list);
+        setListProvince([
+          { value: "None", label: "Tất cả", item: { code: null } },
+          ...list,
+        ]);
       }
     });
   }, []);
+
+  // Tự động lọc khi chọn Tỉnh/Thành
+  useEffect(() => {
+    setActiveFilters((prev) => {
+      const newFilters = { ...prev };
+      if (province?.item?.code) {
+        newFilters.areaCode = province.item.code;
+      } else {
+        delete newFilters.areaCode;
+      }
+      return newFilters;
+    });
+    setCurPage(1);
+  }, [province]);
 
   const handleSearch = (e: any) => {
     const newFilters: { areaCode?: string; searchText?: string } = {};
