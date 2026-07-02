@@ -1,6 +1,7 @@
 import { useState, useEffect, isValidElement, Fragment } from "react";
 import { TableColumn } from "./type";
 import { CircularProgress } from "@mui/material";
+import { TableEmpty } from "./EmptyState";
 
 interface TableProps {
   columns?: TableColumn[];
@@ -94,7 +95,7 @@ export default function Table({
       ) : (
         <>
           {/* ═══════════════ DESKTOP TABLE (≥1024px) ═══════════════ */}
-          <div className="flow-root hidden lg:block">
+          <div className="hidden lg:block">
             <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
               <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
                 <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
@@ -113,26 +114,32 @@ export default function Table({
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white text-center">
-                      {dataSource?.map((item, index) => (
-                        <tr
-                          key={index}
-                          className="even:bg-gray-50 hover:bg-gray-100"
-                          onClick={(e) => onColumnClick && onColumnClick(item)}
-                        >
-                          {columns?.map((column, index) => {
-                            return (
-                              <td
-                                key={column.key ? column.key : index}
-                                className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6"
-                              >
-                                {item[column.dataIndex]}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </tbody>
+                    {dataSource && dataSource.length === 0 ? (
+                      <TableEmpty variant="desktop" colSpan={columns?.length ?? 0} />
+                    ) : (
+                      <tbody className="divide-y divide-gray-200 bg-white text-center">
+                        {dataSource?.map((item, index) => (
+                          <tr
+                            key={index}
+                            className="even:bg-gray-50 hover:bg-gray-100"
+                            onClick={(e) =>
+                              onColumnClick && onColumnClick(item)
+                            }
+                          >
+                            {columns?.map((column, index) => {
+                              return (
+                                <td
+                                  key={column.key ? column.key : index}
+                                  className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6"
+                                >
+                                  {item[column.dataIndex]}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    )}
                   </table>
                 </div>
               </div>
@@ -227,9 +234,7 @@ export default function Table({
 
             {/* Empty state */}
             {(!dataSource || dataSource.length === 0) && (
-              <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 text-center text-sm text-gray-500">
-                Không có dữ liệu
-              </div>
+              <TableEmpty variant="mobile" />
             )}
           </div>
         </>
