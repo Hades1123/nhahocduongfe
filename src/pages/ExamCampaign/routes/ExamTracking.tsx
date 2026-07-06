@@ -81,14 +81,17 @@ const ExamTracking = () => {
     if (!selectedCampaignId) return;
     setNotifying(true);
     try {
-      await api.post(`/api/exam-campaigns/${selectedCampaignId}/notify`);
+      const res = await api.post(`/api/exam-campaigns/${selectedCampaignId}/notify`);
+      const data = res.data;
+      const count = data.notifiedCount || 0;
       Swal.fire(
         "Thành công",
-        `Đã gửi thông báo cho bác sĩ của đợt khám`,
+        `Đã gửi thông báo cho ${count} bác sĩ của đợt khám`,
         "success",
       );
-    } catch (e) {
-      Swal.fire("Lỗi", "Không thể gửi thông báo", "error");
+    } catch (e: any) {
+      const errorMsg = e?.response?.data?.detail || e?.response?.data?.message || "Không thể gửi thông báo";
+      Swal.fire("Lỗi", errorMsg, "error");
     } finally {
       setNotifying(false);
     }
@@ -209,7 +212,7 @@ const ExamTracking = () => {
         </div>
         <Button
           onClick={notifyDentists}
-          isDisabled={notifying || notExaminedCount === 0}
+          isDisabled={notifying}
           className="bg-green-600 hover:bg-green-700"
         >
           {notifying ? "Đang gửi..." : `Gửi thông báo cho bác sĩ`}

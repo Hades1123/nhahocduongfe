@@ -9,12 +9,16 @@ import {
   ChevronDownIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { Fragment, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { twMerge } from "tailwind-merge";
 import Modal from "@/components/Modal";
 import ChangePasswordForm from "@/pages/Login/ChangePassWord";
 import jwt_decode from "jwt-decode";
+import {
+  notificationApi,
+  NotificationItem,
+} from "@/api/notificationApi";
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
@@ -184,6 +188,63 @@ export default function Navbar() {
     }
   }
 
+  // ---- Notification state ----
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
+
+  const fetchUnreadCount = useCallback(async () => {
+    if (isGuest) return;
+    try {
+      const count = await notificationApi.getUnreadCount();
+      setUnreadCount(count);
+    } catch (e) {
+      // silent fail - bell icon just shows no badge
+    }
+  }, [isGuest]);
+
+  const fetchNotifications = async () => {
+    if (isGuest) return;
+    setLoadingNotifications(true);
+    try {
+      const data = await notificationApi.getMyNotifications();
+      setNotifications(data);
+    } catch (e) {
+      // silent fail
+    } finally {
+      setLoadingNotifications(false);
+    }
+  };
+
+  const handleMarkAsRead = async (id: number) => {
+    try {
+      await notificationApi.markAsRead(id);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch (e) {
+      // silent fail
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await notificationApi.markAllAsRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (e) {
+      // silent fail
+    }
+  };
+
+  // Poll unread count every 30s
+  useEffect(() => {
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [fetchUnreadCount]);
+
   // Guest users only see the flat "Bài viết khoa học" link
   const guestItems = navMenuItems.filter(
     (item) => item.slug === slugs.dentalArticles,
@@ -278,13 +339,117 @@ export default function Navbar() {
 
                 {/* ======= Group 2: Right-aligned (bell + profile) ======= */}
                 <div className="flex flex-shrink-0 items-center gap-2">
-                  <button
-                    type="button"
-                    className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                  >
-                    <span className="sr-only">View notifications</span>
-                    <BellIcon className="h-6 w-6" aria-hidden="true" />
-                  </button>
+                  {/* Notification bell with dropdown */}
+                  {!isGuest && (
+                    <Menu as="div" className="relative">
+                      <Menu.Button
+                        className="relative rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        onClick={fetchNotifications}
+                      >
+                        <span className="sr-only">View notifications</span>
+                        <BellIcon className="h-6 w-6" aria-hidden="true" />
+                        {unreadCount > 0 && (
+                          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                            {unreadCount > 99 ? "99+" : unreadCount}
+                          </span>
+                        )}
+                      </Menu.Button>
+                      <Transition
+                        as={Fragment}
+                        enter="transition ease-out duration-200"
+                        enterFrom="transform opacity-0 scale-95"
+                        enterTo="transform opacity-100 scale-100"
+                        leave="transition ease-in duration-75"
+                        leaveFrom="transform opacity-100 scale-100"
+                        leaveTo="transform opacity-0 scale-95"
+                      >
+                        <Menu.Items className="absolute right-0 z-50 mt-2 w-80 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                          <div className="border-b px-4 py-3">
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-sm font-semibold text-gray-900">
+                                Thông báo
+                              </h3>
+                              {unreadCount > 0 && (
+                                <button
+                                  onClick={handleMarkAllAsRead}
+                                  className="text-xs text-indigo-600 hover:text-indigo-800"
+                                >
+                                  Đánh dấu tất cả đã đọc
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <div className="max-h-80 overflow-y-auto">
+                            {loadingNotifications ? (
+                              <div className="px-4 py-6 text-center text-sm text-gray-500">
+                                Đang tải...
+                              </div>
+                            ) : notifications.length === 0 ? (
+                              <div className="px-4 py-6 text-center text-sm text-gray-500">
+                                Không có thông báo nào
+                              </div>
+                            ) : (
+                              notifications.slice(0, 10).map((notification) => (
+                                <Menu.Item key={notification.id}>
+                                  {({ active }) => (
+                                    <div
+                                      className={`cursor-pointer border-b px-4 py-3 text-sm ${
+                                        active ? "bg-gray-50" : ""
+                                      } ${!notification.isRead ? "bg-indigo-50/50" : ""}`}
+                                    >
+                                      <div className="flex items-start justify-between gap-2">
+                                        <div className="flex-1 min-w-0">
+                                          <p
+                                            className={`truncate text-sm ${
+                                              !notification.isRead
+                                                ? "font-semibold text-gray-900"
+                                                : "text-gray-700"
+                                            }`}
+                                          >
+                                            {notification.title}
+                                          </p>
+                                          <p className="mt-1 line-clamp-2 text-xs text-gray-500 whitespace-pre-line">
+                                            {notification.message}
+                                          </p>
+                                          <p className="mt-1 text-xs text-gray-400">
+                                            {new Date(
+                                              notification.createdDate,
+                                            ).toLocaleString("vi-VN")}
+                                          </p>
+                                        </div>
+                                        {!notification.isRead && (
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleMarkAsRead(notification.id);
+                                            }}
+                                            className="flex-shrink-0 text-xs text-indigo-600 hover:text-indigo-800"
+                                          >
+                                            Đã đọc
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </Menu.Item>
+                              ))
+                            )}
+                          </div>
+                        </Menu.Items>
+                      </Transition>
+                    </Menu>
+                  )}
+
+                  {/* Guest users still see a plain bell (no dropdown) */}
+                  {isGuest && (
+                    <button
+                      type="button"
+                      className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    >
+                      <span className="sr-only">View notifications</span>
+                      <BellIcon className="h-6 w-6" aria-hidden="true" />
+                    </button>
+                  )}
 
                   {/* Profile dropdown */}
                   <Menu as="div" className="relative ml-3">

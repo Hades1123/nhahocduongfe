@@ -20,7 +20,8 @@ const PAGE_SIZE = 10;
 interface DentistOption {
   value: number;
   label: string;
-  firstName: string;
+  fullName: string;
+  phoneNumber: string;
 }
 
 /* ─────────────────────────────────────────────
@@ -125,17 +126,23 @@ const ExamScheduleManager = () => {
     }
   };
 
-  /** Fetch danh sách bác sĩ từ bảng nhahocduong_dentist */
+  /** Fetch danh sách bác sĩ từ bảng nhahocduong_dentist + user info */
   const fetchDentists = async () => {
     try {
       const res = await dentistApi.getAll();
-      console.log("Fetched dentists:", res.data.content);
-      const list: Dentist[] = res.data.content || [];
-      const options: DentistOption[] = list.map((d: Dentist) => ({
-        value: d.id,
-        label: d.title,
-        firstName: d.title,
-      }));
+      const list: Dentist[] = Array.isArray(res.data) ? res.data : [];
+      console.log("Fetched dentists:", list);
+      const options: DentistOption[] = list.map((d: Dentist) => {
+        const displayLabel = d.phoneNumber
+          ? `${d.fullName} - ${d.phoneNumber}`
+          : d.fullName;
+        return {
+          value: d.dentistId,
+          label: displayLabel,
+          fullName: d.fullName,
+          phoneNumber: d.phoneNumber || "",
+        };
+      });
       setDentistOptions(options);
     } catch (err) {
       console.error(err);
@@ -211,9 +218,9 @@ const ExamScheduleManager = () => {
     setSelectedDentists((prev) => prev.filter((d) => d.value !== item.value));
   };
 
-  /** Compact label cho Select: trả về firstName của dentist */
+  /** Compact label cho Select: trả về fullName của dentist */
   const getDentistCompactLabel = (opt: DentistOption): string => {
-    return opt.firstName;
+    return opt.fullName;
   };
 
   /* ============================================
@@ -317,15 +324,11 @@ const ExamScheduleManager = () => {
      Build data source
      ============================================ */
   const fullDataSource = schedules.map((data, idx) => {
-    // API có thể trả về dentistNames hoặc chỉ dentistIds → map từ dentistOptions
-    console.log("Mapping schedule:", data);
-    const names: string[] =
-      data.dentistNames && data.dentistNames.length > 0
-        ? data.dentistNames
-        : (data.dentistIds || []).map((id) => {
-            const d = dentistOptions.find((opt) => opt.value === id);
-            return d ? d.label : String(id);
-          });
+    // Luôn map từ dentistIds sang dentistOptions để lấy tên + SĐT mới nhất
+    const names: string[] = (data.dentistIds || []).map((id) => {
+      const d = dentistOptions.find((opt) => opt.value === id);
+      return d ? d.fullName : String(id);
+    });
     const dentistDisplay =
       names.length === 0 ? (
         "—"

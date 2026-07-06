@@ -121,18 +121,19 @@ const Signup = () => {
         // Map account type to corresponding role
         let mappedRoleIds = [...values.roleIds];
         if (values.accountType === "BAC_SI") {
-          const doctorRole = roles.find(
-            (r) =>
-              r.code?.toUpperCase() === "DOCTOR" ||
-              r.code?.toUpperCase() === "DENTIST" ||
-              r.name?.toLowerCase().includes("bác sĩ") ||
-              r.name?.toLowerCase().includes("nha sĩ") ||
-              r.name?.toLowerCase().includes("nha khoa") ||
-              r.name?.toLowerCase().includes("doctor") ||
-              r.name?.toLowerCase().includes("dentist"),
+          const dentistRole = roles.find(
+            (r) => r.code?.toUpperCase() === "DENTIST",
           );
-          if (doctorRole) {
-            mappedRoleIds = [Number(doctorRole.id), ...mappedRoleIds];
+          if (dentistRole) {
+            mappedRoleIds = [Number(dentistRole.id), ...mappedRoleIds];
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: "Lỗi",
+              text: "Role DENTIST chưa tồn tại trong hệ thống. Vui lòng liên hệ admin.",
+            });
+            setIsLoading(false);
+            return;
           }
         } else if (values.accountType === "TRUONG_HOC") {
           const guestRole = roles.find(
@@ -140,6 +141,14 @@ const Signup = () => {
           );
           if (guestRole) {
             mappedRoleIds = [Number(guestRole.id), ...mappedRoleIds];
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: "Lỗi",
+              text: "Role GUEST chưa tồn tại trong hệ thống. Vui lòng liên hệ admin.",
+            });
+            setIsLoading(false);
+            return;
           }
         }
 
