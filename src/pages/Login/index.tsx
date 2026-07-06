@@ -137,12 +137,12 @@ const Login = () => {
               name="password"
               error={formik.errors.password}
             />
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between px-1">
               <Checkbox label="Nhớ mật khẩu" />
               <button
                 type="button"
                 onClick={() => navigate("/forgot-password")}
-                className="text-sm font-medium text-indigo-600 hover:text-indigo-500 hover:underline"
+                className="cursor-pointer text-base font-semibold text-indigo-600 underline hover:text-indigo-700"
               >
                 Quên mật khẩu?
               </button>

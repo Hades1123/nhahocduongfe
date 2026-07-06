@@ -4,6 +4,7 @@ const slugs = {
   login: "/login",
   signup: "/signup",
   logout: "/logout",
+  forgotPassword: "/forgot-password",
   // --PROTECTED--
   home: "/",
   //   patient

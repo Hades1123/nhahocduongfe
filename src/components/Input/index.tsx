@@ -19,6 +19,7 @@ interface Props {
   error?: string | number;
   inputClass?: string;
   required?: boolean;
+  maxLength?: number;
 }
 const CustomInput = (
   {

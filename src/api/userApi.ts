@@ -102,4 +102,15 @@ export const userApi = {
 
   /** Đăng xuất — ghi nhận thời điểm logout */
   logout: () => api.post("/api/auth/logout"),
+
+  /** Yêu cầu gửi mã OTP để đặt lại mật khẩu */
+  forgotPassword: (username: string, email: string, phoneNumber: string) => 
+    api.post("/api/auth/forgot-password", { username, email, phoneNumber }),
+
+  /** Xác thực OTP và nhận token đặt lại mật khẩu */
+  verifyOtp: (email: string, otp: string) => api.post("/api/auth/verify-otp", { email, otp }),
+
+  /** Đặt lại mật khẩu mới bằng token */
+  resetPassword: (resetToken: string, newPassword: string) => 
+    api.post("/api/auth/reset-password", { resetToken, newPassword }),
 };
