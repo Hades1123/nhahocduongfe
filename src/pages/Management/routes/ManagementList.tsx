@@ -284,10 +284,10 @@ const ManagementList = (props: Props) => {
           />
         </Modal>
       )}
-      <div className="flex flex-col gap-8 sm:px-6">
+      <div className="flex flex-col gap-8 px-3 sm:px-6">
         {!organizationType ? (
           <>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <Select
                 label="Tỉnh/Thành"
                 placeholder="Chọn tỉnh/thành"
@@ -296,15 +296,15 @@ const ManagementList = (props: Props) => {
                 onChange={(e) => setProvince(e)}
               />
             </div>
-            <div className="grid grid-cols-2">
-              <div className="flex gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <Input
                   placeholder="Nhập tên trường/ mã trường"
                   onChange={(e) => setSearchText(e.target.value)}
                 />
                 <Button onClick={handleSearch}>Tìm kiếm</Button>
               </div>
-              <div className="flex justify-end">
+              <div className="flex sm:justify-end">
                 <Button
                   onClick={() => {
                     setSelectedOrganization(undefined);
