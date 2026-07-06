@@ -244,8 +244,8 @@ const PatientDetail = (props: Props) => {
       )}
       <form onSubmit={formik.handleSubmit}>
         <Card>
-          <div className="grid grid-cols-5 ">
-            <div className="col-span-1 ">
+          <div className="flex flex-col gap-6 md:grid md:grid-cols-5">
+            <div className="flex flex-col items-center md:col-span-1 md:items-start">
               <div className="flex flex-col gap-5">
                 <span className="inline-block h-44 w-44 overflow-hidden rounded-full bg-gray-100">
                   <svg
@@ -256,7 +256,7 @@ const PatientDetail = (props: Props) => {
                     <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
                 </span>
-                <div className="mb-2 flex w-44 flex-col justify-center gap-2">
+                <div className="mb-2 flex flex-row gap-2 md:w-44 md:flex-col md:justify-center">
                   <Button
                     variants="outlined"
                     onClick={() => setIsOpenMedicalHistoryModal(true)}
@@ -272,9 +272,9 @@ const PatientDetail = (props: Props) => {
                 </div>
               </div>
             </div>
-            <div className="col-span-4 grid gap-6">
+            <div className="grid gap-6 md:col-span-4">
               <h1 className="text-lg font-bold">Thông tin học sinh</h1>
-              <div className=" grid grid-cols-4 gap-8">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-8">
                 <Input label="Mã HS" value={formik.values.code} disabled />
                 <Input
                   label="Họ và tên"
@@ -321,7 +321,7 @@ const PatientDetail = (props: Props) => {
               </div>
               {organizationType ? (
                 <>
-                  <div className=" grid grid-cols-4 gap-8">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-8">
                     <Select
                       label="Lớp"
                       options={flattenObject(
@@ -361,7 +361,7 @@ const PatientDetail = (props: Props) => {
                       }
                     />
                   </div>
-                  <div className="grid grid-cols-4 gap-8">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:max-w-lg">
                     <Input
                       label="Mã thẻ BHYT"
                       type="add"
@@ -380,7 +380,7 @@ const PatientDetail = (props: Props) => {
                 </>
               ) : (
                 <>
-                  <div className=" grid grid-cols-4 gap-8">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-8">
                     <Select
                       label="Tỉnh/ Thành"
                       options={provinces}
@@ -425,7 +425,7 @@ const PatientDetail = (props: Props) => {
                       }
                     />
                   </div>
-                  <div className="grid grid-cols-4 gap-8">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:max-w-lg">
                     <Input
                       label="Mã định danh"
                       value={formik.values.nationalIdNum}

@@ -328,11 +328,12 @@ const HealthCheckModal = (props: Props) => {
 
   return (
     <>
-      <div className="flex  flex-col gap-8  p-4 pb-2">
+      <div className="flex flex-col gap-8 px-3 pb-2 pt-4 sm:px-6">
         <Card>
           <>
-            <div className="flex flex-col gap-1">
-              <div className="grid grid-cols-10 gap-2">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+              {/* Date filters */}
+              <div className="grid grid-cols-2 gap-3 sm:flex sm:gap-3">
                 <Input
                   label="Từ ngày"
                   type="date"
@@ -344,20 +345,21 @@ const HealthCheckModal = (props: Props) => {
                   onChange={(e: any) => setToDate(e.target.value)}
                 />
               </div>
-              <div className="grid grid-cols-2">
-                <div className="flex gap-3">
-                  <Input
-                    placeholder="Nhập phiếu khám"
-                    onChange={(e) => setSearchText(e.target.value)}
-                  />
-                  <Button onClick={handleSearch}>Tìm kiếm</Button>
-                </div>
-                <div className="flex justify-end"></div>
+              {/* Vertical divider (desktop only) */}
+              <div className="hidden h-8 w-px self-end bg-gray-200 sm:mb-2 sm:block" />
+              {/* Search */}
+              <div className="flex flex-1 gap-3">
+                <Input
+                  className="flex-1"
+                  placeholder="Nhập phiếu khám"
+                  onChange={(e) => setSearchText(e.target.value)}
+                />
+                <Button onClick={handleSearch}>Tìm kiếm</Button>
               </div>
             </div>
-            <div className="mb-2 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <label className="relative inline-flex items-center cursor-pointer">
+            <div className="mb-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="relative inline-flex cursor-pointer items-center">
                   <input type="checkbox" className="sr-only peer" checked={isCompareMode} onChange={handleToggleCompare} />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                   <span className="ml-3 text-sm font-medium text-gray-900">So sánh phiếu khám</span>

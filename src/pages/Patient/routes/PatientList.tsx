@@ -24,12 +24,13 @@ const columns: TableColumn[] = [
     dataIndex: "STT",
   },
   {
-    title: "Mã HS",
-    dataIndex: "studentCode",
-  },
-  {
+    // Primary identifier shown in mobile card header
     title: "Họ và tên",
     dataIndex: "name",
+  },
+  {
+    title: "Mã HS",
+    dataIndex: "studentCode",
   },
   {
     title: "Giới tính",
@@ -485,34 +486,49 @@ const PatientList = (props: Props) => {
   };
 
   return (
-    <div className="mt-5 flex flex-col gap-5 sm:px-6 ">
-      <div className="p-2 md:grid md:grid-cols-4 md:gap-4">
-        {!organizationType ? (
-          <>
-            <Select
-              label="Tỉnh/Thành"
-              placeholder="Chọn tỉnh/thành"
-              options={listProvince}
-              value={province}
-              onChange={(e) => filterSchoolByProvince(e)}
-            />
-            <Select
-              label="Trường"
-              placeholder="Chọn trường học"
-              options={schoolOptions}
-              value={school}
-              onChange={(v) => setSchool(v)}
-            />
-          </>
-        ) : null}
-        <Select
-          label="Lớp"
-          placeholder="Chọn lớp"
-          value={classes}
-          options={classOptions}
-          onChange={(v) => setClasses(v)}
-        />
-        <div className="mt-2 flex items-end justify-end gap-3">
+    <div className="mt-5 flex flex-col gap-5 px-3 sm:px-6">
+
+      {/* ── Section 1: Table filters ── */}
+      {!organizationType ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Select
+            label="Tỉnh/Thành"
+            placeholder="Chọn tỉnh/thành"
+            options={listProvince}
+            value={province}
+            onChange={(e) => filterSchoolByProvince(e)}
+          />
+          <Select
+            label="Trường"
+            placeholder="Chọn trường học"
+            options={schoolOptions}
+            value={school}
+            onChange={(v) => setSchool(v)}
+          />
+          <Select
+            label="Lớp"
+            placeholder="Chọn lớp"
+            value={classes}
+            options={classOptions}
+            onChange={(v) => setClasses(v)}
+          />
+        </div>
+      ) : (
+        <div className="max-w-xs">
+          <Select
+            label="Lớp"
+            placeholder="Chọn lớp"
+            value={classes}
+            options={classOptions}
+            onChange={(v) => setClasses(v)}
+          />
+        </div>
+      )}
+
+      {/* ── Section 2: Export report (visually distinct panel) ── */}
+      <div className="flex flex-col gap-3 rounded-lg border border-dashed border-gray-200 bg-gray-50 p-3 sm:flex-row sm:items-end">
+        <span className="shrink-0 text-sm font-medium text-gray-500">Xuất kết quả theo kỳ:</span>
+        <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-end">
           <DateRangePicker
             style={{ width: "100%" }}
             placeholder={"dd/mm/yyyy - dd/mm/yyyy"}
@@ -525,7 +541,6 @@ const PatientList = (props: Props) => {
             placement="auto"
             value={medicalDayRange}
           />
-
           <Button
             onClick={handleResult}
             isDisabled={medicalDayRange.length < 2 || !school || !school.value}
@@ -534,27 +549,31 @@ const PatientList = (props: Props) => {
           </Button>
         </div>
       </div>
-      <div className="p-2 md:grid md:grid-cols-2">
-        <div className="mb-2 flex gap-3">
+
+      {/* ── Section 3: Search + action buttons ── */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row">
           <Input
             placeholder="Nhập họ tên hoặc mã BHYT"
             onChange={(e) => setSearchText(e.target.value)}
           />
-          <Button onClick={handleSearch}>Tìm kiếm</Button>
+          <Button variants="outlined" onClick={handleSearch}>Tìm kiếm</Button>
         </div>
-        <div className="flex justify-between gap-0.5 md:justify-end md:gap-2">
-          <Button onClick={handleExport}>Export</Button>
-          <Button onClick={handleImport}>Import</Button>
-          <Button onClick={handleExportExportExampleFile}>File mẫu</Button>
-          <Button onClick={handleCreateButton}>Tạo mới thông tin</Button>
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
+          <Button variants="outlined" onClick={handleExport}>Export</Button>
+          <Button variants="outlined" onClick={handleImport}>Import</Button>
+          <Button variants="outlined" onClick={handleExportExportExampleFile}>File mẫu</Button>
+          <Button variants="contained" onClick={handleCreateButton}>+ Tạo mới</Button>
         </div>
       </div>
+
       <Card>
         <Table
           columns={columns}
           dataSource={dataSource}
           onColumnClick={(record: IpatientList) => handleColumnClick(record)}
           loading={tableLoading}
+          mobileCardCols={1}
         />
       </Card>
       <PaginationTable

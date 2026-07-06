@@ -8,6 +8,9 @@ interface TableProps {
   loading?: boolean;
   dataSource?: any[];
   onColumnClick?: any;
+  emptyText?: string;
+  /** Number of columns in the mobile card detail grid. Default 2. */
+  mobileCardCols?: 1 | 2 | 3;
 }
 
 /** Chevron icon that rotates when expanded */
@@ -51,6 +54,8 @@ export default function Table({
   dataSource,
   onColumnClick,
   loading = false,
+  emptyText,
+  mobileCardCols = 2,
 }: TableProps) {
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
 
@@ -189,7 +194,15 @@ export default function Table({
                   >
                     <div className="border-t border-gray-100 px-4 py-3">
                       {/* All detail columns as label-value pairs */}
-                      <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <dl
+                        className={`grid grid-cols-1 gap-2 ${
+                          mobileCardCols === 1
+                            ? ""
+                            : mobileCardCols === 3
+                              ? "sm:grid-cols-3"
+                              : "sm:grid-cols-2"
+                        }`}
+                      >
                         {detailColumns.map((col, colIdx) => (
                           <div key={colIdx} className="flex flex-col py-1">
                             <dt className="text-xs font-medium uppercase tracking-wider text-gray-500">

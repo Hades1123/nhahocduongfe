@@ -175,71 +175,47 @@ const TeethOverall = React.forwardRef<HTMLDivElement, Props>(
             <h2 className="mb-4 text-left text-lg font-bold">
               a. PI(chỉ số mảng bám)
             </h2>
-            <div className="mb-4 flex justify-between">
-              <div className="mx-2 w-1/3">
-                <Select
-                  // name="17-16N"
-                  label="17-16N"
-                  options={optionsLeft}
-                  value={formik.values.teethLeft1}
-                  onChange={(value) => {
-                    formik.setFieldValue("teethLeft1", value);
-                  }}
-                  getOptionLabel={(option) => option.label}
-                />
-              </div>
-              <div className="mx-2 w-1/3">
-                <Select
-                  label="11N"
-                  options={optionsLeft}
-                  value={formik.values.teethLeft2}
-                  onChange={(value) =>
-                    formik.setFieldValue("teethLeft2", value)
-                  }
-                />
-              </div>
-              <div className="mx-2 w-1/3">
-                <Select
-                  label="26-27N"
-                  options={optionsLeft}
-                  value={formik.values.teethLeft3}
-                  onChange={(value) =>
-                    formik.setFieldValue("teethLeft3", value)
-                  }
-                />
-              </div>
-            </div>
-            <div className="flex justify-between">
-              <div className="mx-2 w-1/3">
-                <Select
-                  label="47-46T"
-                  options={optionsLeft}
-                  value={formik.values.teethLeft4}
-                  onChange={(value) =>
-                    formik.setFieldValue("teethLeft4", value)
-                  }
-                />
-              </div>
-              <div className="mx-2 w-1/3">
-                <Select
-                  label="31N"
-                  options={optionsLeft}
-                  value={formik.values.teethLeft5}
-                  onChange={(value) =>
-                    formik.setFieldValue("teethLeft5", value)
-                  }
-                />
-              </div>
-              <div className="mx-2 w-1/3">
-                <Select
-                  label="36-37T"
-                  options={optionsLeft}
-                  value={formik.values.teethLeft6}
-                  onChange={(value) =>
-                    formik.setFieldValue("teethLeft6", value)
-                  }
-                />
-              </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-4">
+              <Select
+                // name="17-16N"
+                label="17-16N"
+                options={optionsLeft}
+                value={formik.values.teethLeft1}
+                onChange={(value) => {
+                  formik.setFieldValue("teethLeft1", value);
+                }}
+                getOptionLabel={(option) => option.label}
+              />
+              <Select
+                label="11N"
+                options={optionsLeft}
+                value={formik.values.teethLeft2}
+                onChange={(value) => formik.setFieldValue("teethLeft2", value)}
+              />
+              <Select
+                label="26-27N"
+                options={optionsLeft}
+                value={formik.values.teethLeft3}
+                onChange={(value) => formik.setFieldValue("teethLeft3", value)}
+              />
+              <Select
+                label="47-46T"
+                options={optionsLeft}
+                value={formik.values.teethLeft4}
+                onChange={(value) => formik.setFieldValue("teethLeft4", value)}
+              />
+              <Select
+                label="31N"
+                options={optionsLeft}
+                value={formik.values.teethLeft5}
+                onChange={(value) => formik.setFieldValue("teethLeft5", value)}
+              />
+              <Select
+                label="36-37T"
+                options={optionsLeft}
+                value={formik.values.teethLeft6}
+                onChange={(value) => formik.setFieldValue("teethLeft6", value)}
+              />
             </div>
           </div>
         </div>
@@ -249,69 +225,43 @@ const TeethOverall = React.forwardRef<HTMLDivElement, Props>(
             <h2 className="mb-4 text-left text-lg font-bold">
               b. CI (chỉ số vôi răng)
             </h2>
-            <div className="mb-4 flex justify-between">
-              <div className="mx-2 w-1/3">
-                <Select
-                  label="17-16N"
-                  options={optionsRight}
-                  value={formik.values.teethRight1}
-                  onChange={(value) =>
-                    formik.setFieldValue("teethRight1", value)
-                  }
-                />
-              </div>
-              <div className="mx-2 w-1/3">
-                <Select
-                  label="11N"
-                  options={optionsRight}
-                  value={formik.values.teethRight2}
-                  onChange={(value) =>
-                    formik.setFieldValue("teethRight2", value)
-                  }
-                />
-              </div>
-              <div className="mx-2 w-1/3">
-                <Select
-                  label="26-27N"
-                  options={optionsRight}
-                  value={formik.values.teethRight3}
-                  onChange={(value) =>
-                    formik.setFieldValue("teethRight3", value)
-                  }
-                />
-              </div>
-            </div>
-            <div className="flex justify-between">
-              <div className="mx-2 w-1/3">
-                <Select
-                  label="47-46T"
-                  options={optionsRight}
-                  value={formik.values.teethRight4}
-                  onChange={(value) =>
-                    formik.setFieldValue("teethRight4", value)
-                  }
-                />
-              </div>
-              <div className="mx-2 w-1/3">
-                <Select
-                  label="31N"
-                  options={optionsRight}
-                  value={formik.values.teethRight5}
-                  onChange={(value) =>
-                    formik.setFieldValue("teethRight5", value)
-                  }
-                />
-              </div>
-              <div className="mx-2 w-1/3">
-                <Select
-                  label="36-37T"
-                  options={optionsRight}
-                  value={formik.values.teethRight6}
-                  onChange={(value) =>
-                    formik.setFieldValue("teethRight6", value)
-                  }
-                />
-              </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-4">
+              <Select
+                label="17-16N"
+                options={optionsRight}
+                value={formik.values.teethRight1}
+                onChange={(value) => formik.setFieldValue("teethRight1", value)}
+              />
+              <Select
+                label="11N"
+                options={optionsRight}
+                value={formik.values.teethRight2}
+                onChange={(value) => formik.setFieldValue("teethRight2", value)}
+              />
+              <Select
+                label="26-27N"
+                options={optionsRight}
+                value={formik.values.teethRight3}
+                onChange={(value) => formik.setFieldValue("teethRight3", value)}
+              />
+              <Select
+                label="47-46T"
+                options={optionsRight}
+                value={formik.values.teethRight4}
+                onChange={(value) => formik.setFieldValue("teethRight4", value)}
+              />
+              <Select
+                label="31N"
+                options={optionsRight}
+                value={formik.values.teethRight5}
+                onChange={(value) => formik.setFieldValue("teethRight5", value)}
+              />
+              <Select
+                label="36-37T"
+                options={optionsRight}
+                value={formik.values.teethRight6}
+                onChange={(value) => formik.setFieldValue("teethRight6", value)}
+              />
             </div>
           </div>
         </div>

@@ -59,7 +59,7 @@ export default function CompareExamsView({ patientId, examIds }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
          <div className="text-center">
             <h2 className="text-lg font-bold text-indigo-700 bg-indigo-50 py-2 rounded-t-md">
                Phiếu cũ ({exam1.date})

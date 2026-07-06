@@ -544,7 +544,7 @@ const TreatmentTable = React.forwardRef<any, any>(
           setIsOpen={setOpenSupplyModal}
           onChange={setValues}
         />
-        <div className="mb-4 grid grid-cols-4 items-center gap-4">
+        <div className="mb-4 grid grid-cols-1 items-end gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Select
             label="Chẩn đoán"
             value={values.diagnosis}
@@ -571,12 +571,14 @@ const TreatmentTable = React.forwardRef<any, any>(
             placeholder="Chọn thuốc/VTYT"
           />
           <div className="flex items-end gap-4">
-            <Input
-              name="dentistName"
-              label="Bác sĩ thực hiện"
-              value={values.dentistName}
-              onChange={(e) => setFieldValue("dentistName", e.target.value)}
-            />
+            <div className="flex-1">
+              <Input
+                name="dentistName"
+                label="Bác sĩ thực hiện"
+                value={values.dentistName}
+                onChange={(e) => setFieldValue("dentistName", e.target.value)}
+              />
+            </div>
             <Button type="button" onClick={handleSubmit as any}>
               Thêm
             </Button>

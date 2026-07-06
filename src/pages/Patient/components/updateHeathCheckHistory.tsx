@@ -345,7 +345,7 @@ const UpdateHealthCheckButton = ({ onSuccess }: any) => {
           onSuccess={onSuccess}
         />
       )}
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
         <Button onClick={handleExportExams}>Xuất phiếu khám</Button>
         <Button onClick={() => setShow(true)}>Tạo mới</Button>
       </div>
