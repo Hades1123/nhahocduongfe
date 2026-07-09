@@ -8,7 +8,7 @@ import Input from "@/components/Input";
 import Select from "@/components/Select";
 import Table from "@/components/Table";
 import { TableColumn } from "@/components/Table/type";
-import { ArrowLeftIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, TrashIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
 import Swal from "sweetalert2";
 import { IExamCampaign, IExamSchedule } from "../type";
 
@@ -45,6 +45,7 @@ const ExamScheduleManager = () => {
 
   // ── Form states ──
   const [campaign, setCampaign] = useState<IExamCampaign | null>(null);
+  const [editingScheduleId, setEditingScheduleId] = useState<number | null>(null);
   const [provinces, setProvinces] = useState<any[]>([]);
   const [selectedProvince, setSelectedProvince] = useState<any>(null);
   const [allSchools, setAllSchools] = useState<any[]>([]);
@@ -182,10 +183,8 @@ const ExamScheduleManager = () => {
         return schoolArea.startsWith(code) || schoolArea === code;
       });
       setSchools(filtered);
-      setSelectedSchoolOption(null);
     } else {
       setSchools(allSchools);
-      setSelectedSchoolOption(null);
     }
   }, [selectedProvince, allSchools]);
 
@@ -204,10 +203,8 @@ const ExamScheduleManager = () => {
         label: cls,
       }));
       setClassOptions(options);
-      setSelectedClassOption(null);
     } else {
       setClassOptions([]);
-      setSelectedClassOption(null);
     }
   }, [selectedSchoolOption]);
 
@@ -221,6 +218,31 @@ const ExamScheduleManager = () => {
   /** Compact label cho Select: trả về fullName của dentist */
   const getDentistCompactLabel = (opt: DentistOption): string => {
     return opt.fullName;
+  };
+
+  const handleEditClick = (schedule: IExamSchedule) => {
+    setEditingScheduleId(schedule.id || null);
+
+    // Find school
+    const schoolOpt = allSchools.find(s => s.value.id === schedule.organizationId);
+    
+    // Find province
+    if (schoolOpt && schoolOpt.value.areaCode) {
+      const provOpt = provinces.find(p => schoolOpt.value.areaCode.startsWith(p.value.code) || schoolOpt.value.areaCode === p.value.code);
+      setSelectedProvince(provOpt || null);
+    } else {
+      setSelectedProvince(null);
+    }
+    
+    setSelectedSchoolOption(schoolOpt || null);
+    setSelectedClassOption(schedule.schoolClass ? { value: schedule.schoolClass, label: schedule.schoolClass } : null);
+    setExamDate(schedule.examDate || "");
+    
+    // Find dentists
+    const selectedDents = (schedule.dentistIds || []).map(id => {
+      return dentistOptions.find(opt => opt.value === id);
+    }).filter(Boolean) as DentistOption[];
+    setSelectedDentists(selectedDents);
   };
 
   /* ============================================
@@ -255,6 +277,7 @@ const ExamScheduleManager = () => {
 
     try {
       const payload: IExamSchedule = {
+        id: editingScheduleId || undefined,
         campaignId: Number(campaignId),
         organizationId: selectedSchoolOption.value.id,
         schoolClass: selectedClassOption.value,
@@ -265,11 +288,13 @@ const ExamScheduleManager = () => {
       await api.post(`/api/exam-campaigns/${campaignId}/schedules`, payload);
       Swal.fire({
         icon: "success",
-        title: "Lưu lịch khám thành công!",
+        title: editingScheduleId ? "Cập nhật lịch khám thành công!" : "Lưu lịch khám thành công!",
         timer: 1500,
         showConfirmButton: false,
       });
+
       // Reset form
+      setEditingScheduleId(null);
       setExamDate("");
       setSelectedClassOption(null);
       setSelectedDentists([]);
@@ -356,12 +381,17 @@ const ExamScheduleManager = () => {
       examDate: data.examDate,
       dentistDisplay,
       action: (
-        <span
-          className="flex items-center justify-center"
+        <div
+          className="flex items-center justify-center gap-3"
           onClick={(e) => e.stopPropagation()}
         >
+          <PencilSquareIcon
+            className="h-5 w-5 cursor-pointer text-blue-600 hover:text-blue-800"
+            onClick={() => handleEditClick(data)}
+            title="Chỉnh sửa"
+          />
           <TrashIcon
-            className="h-6 w-6 cursor-pointer text-red-600 hover:text-red-800"
+            className="h-5 w-5 cursor-pointer text-red-600 hover:text-red-800"
             onClick={() =>
               handleDeleteSchedule(
                 data.id!,
@@ -369,8 +399,9 @@ const ExamScheduleManager = () => {
                 data.organizationName || "",
               )
             }
+            title="Xóa"
           />
-        </span>
+        </div>
       ),
     };
   });
@@ -412,30 +443,38 @@ const ExamScheduleManager = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 xl:grid-cols-4">
         {/* ═══════════════ LEFT: Scheduling Form ═══════════════ */}
-        <Card className="h-fit lg:col-span-1">
-          <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-gray-900">
-            Thêm lịch khám mới
-          </h2>
-          <form onSubmit={handleSaveSchedule} className="flex flex-col gap-4">
-            <Select<any>
-              label="Tỉnh/Thành phố"
-              placeholder="Chọn tỉnh/thành phố"
-              options={provinces}
-              value={selectedProvince}
-              onChange={(val) => setSelectedProvince(val)}
-            />
+        <div className="lg:col-span-1 xl:col-span-1">
+          <Card className="h-fit">
+            <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-gray-900">
+              {editingScheduleId ? "Thay đổi lịch khám" : "Thêm lịch khám mới"}
+            </h2>
+            <form onSubmit={handleSaveSchedule} className="flex flex-col gap-4">
+              <Select<any>
+                label="Tỉnh/Thành phố"
+                placeholder="Chọn tỉnh/thành phố"
+                options={provinces}
+                value={selectedProvince}
+                onChange={(val) => {
+                  setSelectedProvince(val);
+                  setSelectedSchoolOption(null);
+                  setSelectedClassOption(null);
+                }}
+              />
 
-            <Select<any>
-              label="Trường học"
-              placeholder="Chọn trường học"
-              options={schools}
-              value={selectedSchoolOption}
-              onChange={(val) => setSelectedSchoolOption(val)}
-              disabled={!schools.length}
-              required
-            />
+              <Select<any>
+                label="Trường học"
+                placeholder="Chọn trường học"
+                options={schools}
+                value={selectedSchoolOption}
+                onChange={(val) => {
+                  setSelectedSchoolOption(val);
+                  setSelectedClassOption(null);
+                }}
+                disabled={!schools.length}
+                required
+              />
 
             <Select<any>
               label="Lớp học"
@@ -468,16 +507,32 @@ const ExamScheduleManager = () => {
               onRemoveItem={handleRemoveDentist}
             />
 
-            <div className="mt-2 flex justify-end">
-              <Button type="submit" className="w-full">
-                Lưu lịch
+            <div className="mt-2 flex flex-col sm:flex-row justify-end gap-2">
+              {editingScheduleId && (
+                <button
+                  type="button"
+                  className="rounded-md px-3 py-2 text-sm font-semibold shadow-sm whitespace-nowrap bg-white text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 w-full sm:w-auto"
+                  onClick={() => {
+                    setEditingScheduleId(null);
+                    setExamDate("");
+                    setSelectedClassOption(null);
+                    setSelectedDentists([]);
+                  }}
+                >
+                  Hủy
+                </button>
+              )}
+              <Button type="submit" className="w-full sm:w-auto">
+                {editingScheduleId ? "Lưu thay đổi" : "Lưu lịch"}
               </Button>
             </div>
           </form>
         </Card>
+        </div>
 
         {/* ═══════════════ RIGHT: Schedule List ═══════════════ */}
-        <Card className="lg:col-span-2">
+        <div className="lg:col-span-2 xl:col-span-3">
+          <Card>
           <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-gray-900">
             Danh sách lịch khám của đợt
           </h2>
@@ -520,6 +575,7 @@ const ExamScheduleManager = () => {
             </div>
           )}
         </Card>
+        </div>
       </div>
     </div>
   );
