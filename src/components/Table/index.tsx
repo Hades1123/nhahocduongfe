@@ -2,7 +2,6 @@ import { useState, useEffect, isValidElement, Fragment } from "react";
 import { TableColumn } from "./type";
 import { CircularProgress } from "@mui/material";
 import { TableEmpty } from "./EmptyState";
-import { TableEmpty } from "./EmptyState";
 
 interface TableProps {
   columns?: TableColumn[];
@@ -121,7 +120,10 @@ export default function Table({
                       </tr>
                     </thead>
                     {dataSource && dataSource.length === 0 ? (
-                      <TableEmpty variant="desktop" colSpan={columns?.length ?? 0} />
+                      <TableEmpty
+                        variant="desktop"
+                        colSpan={columns?.length ?? 0}
+                      />
                     ) : (
                       <tbody className="divide-y divide-gray-200 bg-white text-center">
                         {dataSource?.map((item, index) => (
@@ -147,7 +149,10 @@ export default function Table({
                       </tbody>
                     )}
                     {dataSource && dataSource.length === 0 ? (
-                      <TableEmpty variant="desktop" colSpan={columns?.length ?? 0} />
+                      <TableEmpty
+                        variant="desktop"
+                        colSpan={columns?.length ?? 0}
+                      />
                     ) : (
                       <tbody className="divide-y divide-gray-200 bg-white text-center">
                         {dataSource?.map((item, index) => (
@@ -226,8 +231,8 @@ export default function Table({
                           mobileCardCols === 1
                             ? ""
                             : mobileCardCols === 3
-                              ? "sm:grid-cols-3"
-                              : "sm:grid-cols-2"
+                            ? "sm:grid-cols-3"
+                            : "sm:grid-cols-2"
                         }`}
                       >
                         {detailColumns.map((col, colIdx) => (
@@ -274,7 +279,6 @@ export default function Table({
 
             {/* Empty state */}
             {(!dataSource || dataSource.length === 0) && (
-              <TableEmpty variant="mobile" />
               <TableEmpty variant="mobile" />
             )}
           </div>
