@@ -123,35 +123,7 @@ export default function Table({
                       <TableEmpty
                         variant="desktop"
                         colSpan={columns?.length ?? 0}
-                      />
-                    ) : (
-                      <tbody className="divide-y divide-gray-200 bg-white text-center">
-                        {dataSource?.map((item, index) => (
-                          <tr
-                            key={index}
-                            className="even:bg-gray-50 hover:bg-gray-100"
-                            onClick={(e) =>
-                              onColumnClick && onColumnClick(item)
-                            }
-                          >
-                            {columns?.map((column, index) => {
-                              return (
-                                <td
-                                  key={column.key ? column.key : index}
-                                  className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6"
-                                >
-                                  {item[column.dataIndex]}
-                                </td>
-                              );
-                            })}
-                          </tr>
-                        ))}
-                      </tbody>
-                    )}
-                    {dataSource && dataSource.length === 0 ? (
-                      <TableEmpty
-                        variant="desktop"
-                        colSpan={columns?.length ?? 0}
+                        emptyText={emptyText}
                       />
                     ) : (
                       <tbody className="divide-y divide-gray-200 bg-white text-center">
@@ -279,7 +251,7 @@ export default function Table({
 
             {/* Empty state */}
             {(!dataSource || dataSource.length === 0) && (
-              <TableEmpty variant="mobile" />
+              <TableEmpty variant="mobile" emptyText={emptyText} />
             )}
           </div>
         </>

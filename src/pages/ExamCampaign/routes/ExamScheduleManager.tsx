@@ -8,7 +8,11 @@ import Input from "@/components/Input";
 import Select from "@/components/Select";
 import Table from "@/components/Table";
 import { TableColumn } from "@/components/Table/type";
-import { ArrowLeftIcon, TrashIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowLeftIcon,
+  TrashIcon,
+  PencilSquareIcon,
+} from "@heroicons/react/24/outline";
 import Swal from "sweetalert2";
 import { IExamCampaign, IExamSchedule } from "../type";
 
@@ -45,7 +49,9 @@ const ExamScheduleManager = () => {
 
   // ── Form states ──
   const [campaign, setCampaign] = useState<IExamCampaign | null>(null);
-  const [editingScheduleId, setEditingScheduleId] = useState<number | null>(null);
+  const [editingScheduleId, setEditingScheduleId] = useState<number | null>(
+    null,
+  );
   const [provinces, setProvinces] = useState<any[]>([]);
   const [selectedProvince, setSelectedProvince] = useState<any>(null);
   const [allSchools, setAllSchools] = useState<any[]>([]);
@@ -69,7 +75,6 @@ const ExamScheduleManager = () => {
      ============================================ */
   const fetchCampaign = async () => {
     try {
-      setTableLoading(true);
       const res = await api.get<IExamCampaign>(
         `/api/exam-campaigns/${campaignId}`,
       );
@@ -81,8 +86,6 @@ const ExamScheduleManager = () => {
         title: "Lỗi",
         text: "Không thể tải thông tin đợt khám!",
       });
-    } finally {
-      setTableLoading(false);
     }
   };
 
@@ -152,12 +155,15 @@ const ExamScheduleManager = () => {
 
   const fetchSchedules = async () => {
     try {
+      setTableLoading(true);
       const res = await api.get<IExamSchedule[]>(
         `/api/exam-campaigns/${campaignId}/schedules`,
       );
       setSchedules(res.data || []);
     } catch (err) {
       console.error(err);
+    } finally {
+      setTableLoading(false);
     }
   };
 
@@ -224,24 +230,36 @@ const ExamScheduleManager = () => {
     setEditingScheduleId(schedule.id || null);
 
     // Find school
-    const schoolOpt = allSchools.find(s => s.value.id === schedule.organizationId);
-    
+    const schoolOpt = allSchools.find(
+      (s) => s.value.id === schedule.organizationId,
+    );
+
     // Find province
     if (schoolOpt && schoolOpt.value.areaCode) {
-      const provOpt = provinces.find(p => schoolOpt.value.areaCode.startsWith(p.value.code) || schoolOpt.value.areaCode === p.value.code);
+      const provOpt = provinces.find(
+        (p) =>
+          schoolOpt.value.areaCode.startsWith(p.value.code) ||
+          schoolOpt.value.areaCode === p.value.code,
+      );
       setSelectedProvince(provOpt || null);
     } else {
       setSelectedProvince(null);
     }
-    
+
     setSelectedSchoolOption(schoolOpt || null);
-    setSelectedClassOption(schedule.schoolClass ? { value: schedule.schoolClass, label: schedule.schoolClass } : null);
+    setSelectedClassOption(
+      schedule.schoolClass
+        ? { value: schedule.schoolClass, label: schedule.schoolClass }
+        : null,
+    );
     setExamDate(schedule.examDate || "");
-    
+
     // Find dentists
-    const selectedDents = (schedule.dentistIds || []).map(id => {
-      return dentistOptions.find(opt => opt.value === id);
-    }).filter(Boolean) as DentistOption[];
+    const selectedDents = (schedule.dentistIds || [])
+      .map((id) => {
+        return dentistOptions.find((opt) => opt.value === id);
+      })
+      .filter(Boolean) as DentistOption[];
     setSelectedDentists(selectedDents);
   };
 
@@ -288,7 +306,9 @@ const ExamScheduleManager = () => {
       await api.post(`/api/exam-campaigns/${campaignId}/schedules`, payload);
       Swal.fire({
         icon: "success",
-        title: editingScheduleId ? "Cập nhật lịch khám thành công!" : "Lưu lịch khám thành công!",
+        title: editingScheduleId
+          ? "Cập nhật lịch khám thành công!"
+          : "Lưu lịch khám thành công!",
         timer: 1500,
         showConfirmButton: false,
       });
@@ -349,11 +369,13 @@ const ExamScheduleManager = () => {
      Build data source
      ============================================ */
   const fullDataSource = schedules.map((data, idx) => {
-    // Luôn map từ dentistIds sang dentistOptions để lấy tên + SĐT mới nhất
-    const names: string[] = (data.dentistIds || []).map((id) => {
-      const d = dentistOptions.find((opt) => opt.value === id);
-      return d ? d.fullName : String(id);
-    });
+    //! Luôn map từ dentistIds sang dentistOptions để lấy tên + SĐT mới nhất
+    //! Này chỉ hiển thị tên thôi cần gì làm dài dòng như vậy
+    // const names: string[] = (data.dentistIds || []).map((id) => {
+    //   const d = dentistOptions.find((opt) => opt.value === id);
+    //   return d ? d.fullName : String(id);
+    // });
+    const names = data.dentistNames ?? [];
     const dentistDisplay =
       names.length === 0 ? (
         "—"
@@ -476,105 +498,106 @@ const ExamScheduleManager = () => {
                 required
               />
 
-            <Select<any>
-              label="Lớp học"
-              placeholder="Chọn lớp học"
-              options={classOptions}
-              value={selectedClassOption}
-              onChange={(val) => setSelectedClassOption(val)}
-              disabled={!selectedSchoolOption}
-              required
-            />
+              <Select<any>
+                label="Lớp học"
+                placeholder="Chọn lớp học"
+                options={classOptions}
+                value={selectedClassOption}
+                onChange={(val) => setSelectedClassOption(val)}
+                disabled={!selectedSchoolOption}
+                required
+              />
 
-            <Input
-              label="Ngày khám"
-              type="date"
-              value={examDate}
-              onChange={(e) => setExamDate(e.target.value)}
-              required
-            />
+              <Input
+                label="Ngày khám"
+                type="date"
+                value={examDate}
+                onChange={(e) => setExamDate(e.target.value)}
+                required
+              />
 
-            {/* ── Dentist multi-select (compactMulti mode) ── */}
-            <Select<DentistOption>
-              label="Bác sĩ"
-              placeholder="Chọn bác sĩ"
-              options={dentistOptions}
-              value={selectedDentists}
-              onChange={(val) => setSelectedDentists(val || [])}
-              multiple
-              compactMulti
-              getCompactLabel={getDentistCompactLabel}
-              onRemoveItem={handleRemoveDentist}
-            />
+              {/* ── Dentist multi-select (compactMulti mode) ── */}
+              <Select<DentistOption>
+                label="Bác sĩ"
+                placeholder="Chọn bác sĩ"
+                options={dentistOptions}
+                value={selectedDentists}
+                onChange={(val) => setSelectedDentists(val || [])}
+                multiple
+                compactMulti
+                getCompactLabel={getDentistCompactLabel}
+                onRemoveItem={handleRemoveDentist}
+              />
 
-            <div className="mt-2 flex flex-col sm:flex-row justify-end gap-2">
-              {editingScheduleId && (
-                <button
-                  type="button"
-                  className="rounded-md px-3 py-2 text-sm font-semibold shadow-sm whitespace-nowrap bg-white text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 w-full sm:w-auto"
-                  onClick={() => {
-                    setEditingScheduleId(null);
-                    setExamDate("");
-                    setSelectedClassOption(null);
-                    setSelectedDentists([]);
-                  }}
-                >
-                  Hủy
-                </button>
-              )}
-              <Button type="submit" className="w-full sm:w-auto">
-                {editingScheduleId ? "Lưu thay đổi" : "Lưu lịch"}
-              </Button>
-            </div>
-          </form>
-        </Card>
+              <div className="mt-2 flex flex-col justify-end gap-2 sm:flex-row">
+                {editingScheduleId && (
+                  <button
+                    type="button"
+                    className="w-full whitespace-nowrap rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:w-auto"
+                    onClick={() => {
+                      setEditingScheduleId(null);
+                      setExamDate("");
+                      setSelectedClassOption(null);
+                      setSelectedDentists([]);
+                    }}
+                  >
+                    Hủy
+                  </button>
+                )}
+                <Button type="submit" className="w-full sm:w-auto">
+                  {editingScheduleId ? "Lưu thay đổi" : "Lưu lịch"}
+                </Button>
+              </div>
+            </form>
+          </Card>
         </div>
 
         {/* ═══════════════ RIGHT: Schedule List ═══════════════ */}
         <div className="lg:col-span-2 xl:col-span-3">
           <Card>
-          <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-gray-900">
-            Danh sách lịch khám của đợt
-          </h2>
-          <Table
-            columns={columns}
-            dataSource={paginatedData}
-            loading={tableLoading}
-          />
+            <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-gray-900">
+              Danh sách lịch khám của đợt
+            </h2>
+            <Table
+              columns={columns}
+              dataSource={paginatedData}
+              loading={tableLoading}
+              emptyText="Chưa có lịch khám nào được lập cho đợt khám này."
+            />
 
-          {fullDataSource.length === 0 && (
-            <div className="py-8 text-center text-gray-500">
-              Chưa có lịch khám nào được lập cho đợt khám này.
-            </div>
-          )}
+            {/* {fullDataSource.length === 0 && (
+              <div className="py-8 text-center text-gray-500">
+                Chưa có lịch khám nào được lập cho đợt khám này.
+              </div>
+            )} */}
 
-          {/* ── Pagination ── */}
-          {totalPages > 1 && (
-            <div className="mt-4 flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Trước
-              </button>
-              <span className="text-sm text-gray-600">
-                Trang {currentPage} / {totalPages}
-              </span>
-              <button
-                type="button"
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
-                disabled={currentPage === totalPages}
-                className="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Sau
-              </button>
-            </div>
-          )}
-        </Card>
+            {/* ── Pagination ── */}
+            {totalPages > 1 && (
+              <div className="mt-4 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Trước
+                </button>
+                <span className="text-sm text-gray-600">
+                  Trang {currentPage} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Sau
+                </button>
+              </div>
+            )}
+          </Card>
         </div>
       </div>
     </div>
