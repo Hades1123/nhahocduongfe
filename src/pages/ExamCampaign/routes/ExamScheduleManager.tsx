@@ -456,7 +456,7 @@ const ExamScheduleManager = () => {
           <ArrowLeftIcon className="h-5 w-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">
             Lập lịch đợt khám: {campaign?.name || "..."}
           </h1>
           <p className="text-sm text-gray-500">
@@ -469,7 +469,7 @@ const ExamScheduleManager = () => {
         {/* ═══════════════ LEFT: Scheduling Form ═══════════════ */}
         <div className="lg:col-span-1 xl:col-span-1">
           <Card className="h-fit">
-            <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-gray-900">
+            <h2 className="mb-4 border-b dark:border-slate-700 pb-2 text-lg font-semibold text-gray-900 dark:text-slate-100">
               {editingScheduleId ? "Thay đổi lịch khám" : "Thêm lịch khám mới"}
             </h2>
             <form onSubmit={handleSaveSchedule} className="flex flex-col gap-4">
@@ -529,75 +529,74 @@ const ExamScheduleManager = () => {
                 onRemoveItem={handleRemoveDentist}
               />
 
-              <div className="mt-2 flex flex-col justify-end gap-2 sm:flex-row">
-                {editingScheduleId && (
-                  <button
-                    type="button"
-                    className="w-full whitespace-nowrap rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:w-auto"
-                    onClick={() => {
-                      setEditingScheduleId(null);
-                      setExamDate("");
-                      setSelectedClassOption(null);
-                      setSelectedDentists([]);
-                    }}
-                  >
-                    Hủy
-                  </button>
-                )}
-                <Button type="submit" className="w-full sm:w-auto">
-                  {editingScheduleId ? "Lưu thay đổi" : "Lưu lịch"}
-                </Button>
-              </div>
-            </form>
-          </Card>
+            <div className="mt-2 flex flex-col sm:flex-row justify-end gap-2">
+              {editingScheduleId && (
+                <button
+                  type="button"
+                  className="rounded-md px-3 py-2 text-sm font-semibold shadow-sm whitespace-nowrap bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-200 ring-1 ring-inset ring-gray-300 dark:ring-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 w-full sm:w-auto"
+                  onClick={() => {
+                    setEditingScheduleId(null);
+                    setExamDate("");
+                    setSelectedClassOption(null);
+                    setSelectedDentists([]);
+                  }}
+                >
+                  Hủy
+                </button>
+              )}
+              <Button type="submit" className="w-full sm:w-auto">
+                {editingScheduleId ? "Lưu thay đổi" : "Lưu lịch"}
+              </Button>
+            </div>
+          </form>
+        </Card>
         </div>
 
         {/* ═══════════════ RIGHT: Schedule List ═══════════════ */}
         <div className="lg:col-span-2 xl:col-span-3">
           <Card>
-            <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-gray-900">
-              Danh sách lịch khám của đợt
-            </h2>
-            <Table
-              columns={columns}
-              dataSource={paginatedData}
-              loading={tableLoading}
-              emptyText="Chưa có lịch khám nào được lập cho đợt khám này."
-            />
+          <h2 className="mb-4 border-b dark:border-slate-700 pb-2 text-lg font-semibold text-gray-900 dark:text-slate-100">
+            Danh sách lịch khám của đợt
+          </h2>
+          <Table
+            columns={columns}
+            dataSource={paginatedData}
+            loading={tableLoading}
+          />
 
-            {/* {fullDataSource.length === 0 && (
-              <div className="py-8 text-center text-gray-500">
-                Chưa có lịch khám nào được lập cho đợt khám này.
-              </div>
-            )} */}
+          {fullDataSource.length === 0 && (
+            <div className="py-8 text-center text-gray-500 dark:text-slate-400">
+              Chưa có lịch khám nào được lập cho đợt khám này.
+            </div>
+          )}
 
-            {/* ── Pagination ── */}
-            {totalPages > 1 && (
-              <div className="mt-4 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Trước
-                </button>
-                <span className="text-sm text-gray-600">
-                  Trang {currentPage} / {totalPages}
-                </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Sau
-                </button>
-              </div>
-            )}
-          </Card>
+          {/* ── Pagination ── */}
+          {totalPages > 1 && (
+            <div className="mt-4 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Trước
+              </button>
+              <span className="text-sm text-gray-600 dark:text-slate-300">
+                Trang {currentPage} / {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={currentPage === totalPages}
+                className="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Sau
+              </button>
+            </div>
+          )}
+        </Card>
         </div>
       </div>
     </div>

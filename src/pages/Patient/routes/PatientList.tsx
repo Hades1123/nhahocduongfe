@@ -13,7 +13,8 @@ import { Tooltip } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import { DateRangePicker } from "rsuite";
+import { DateRangePicker, DatePicker } from "rsuite";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface Props {}
 
@@ -83,6 +84,7 @@ const PatientList = (props: Props) => {
   const navigate = useNavigate();
   const [dataFetching, setDataFetching] = useState([]);
   const [organizations, setOrganizations] = useState([]);
+  const isMobile = useIsMobile();
   const [classOptions, setClassOptions] = useState<any>();
   const [schoolOptions, setSchoolOptions] = useState<any>();
   const [searchText, setSearchText] = useState("");
@@ -524,21 +526,46 @@ const PatientList = (props: Props) => {
       )}
 
       {/* ── Section 2: Export report (visually distinct panel) ── */}
-      <div className="flex flex-col gap-3 rounded-lg border border-dashed border-gray-200 bg-gray-50 p-3 sm:flex-row sm:items-end">
+      <div className="flex flex-col gap-3 rounded-lg border border-dashed border-gray-200 bg-gray-50 p-3 sm:flex-row sm:items-center">
         <span className="shrink-0 text-sm font-medium text-gray-500">Xuất kết quả theo kỳ:</span>
-        <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-end">
-          <DateRangePicker
-            style={{ width: "100%" }}
-            placeholder={"dd/mm/yyyy - dd/mm/yyyy"}
-            format={"dd/MM/yyyy"}
-            onChange={(e) => setMedicalDayRange(e)}
-            onClean={() => {
-              setMedicalDayRange([]);
-            }}
-            onOk={handleOk}
-            placement="auto"
-            value={medicalDayRange}
-          />
+        <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
+          {isMobile ? (
+            <div className="flex flex-col gap-2 w-full">
+              <div className="flex flex-col gap-1 w-full">
+                <div className="text-xs text-gray-500">Từ ngày</div>
+                <DatePicker
+                  style={{ width: "100%" }}
+                  value={medicalDayRange?.[0] || null}
+                  onChange={(value) => setMedicalDayRange([value, medicalDayRange?.[1]])}
+                  onClean={() => setMedicalDayRange([null, medicalDayRange?.[1]])}
+                />
+              </div>
+              <div className="flex flex-col gap-1 w-full">
+                <div className="text-xs text-gray-500">Đến ngày</div>
+                <DatePicker
+                  style={{ width: "100%" }}
+                  value={medicalDayRange?.[1] || null}
+                  onChange={(value) => setMedicalDayRange([medicalDayRange?.[0], value])}
+                  onClean={() => setMedicalDayRange([medicalDayRange?.[0], null])}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="w-full sm:w-auto">
+              <DateRangePicker
+                style={{ width: "100%", maxWidth: "280px" }}
+                placeholder={"dd/mm/yyyy - dd/mm/yyyy"}
+                format={"dd/MM/yyyy"}
+                onChange={(e) => setMedicalDayRange(e)}
+                onClean={() => {
+                  setMedicalDayRange([]);
+                }}
+                onOk={handleOk}
+                placement="auto"
+                value={medicalDayRange}
+              />
+            </div>
+          )}
           <Button
             onClick={handleResult}
             isDisabled={!school || !school.value}

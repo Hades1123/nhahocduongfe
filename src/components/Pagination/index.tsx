@@ -30,13 +30,15 @@ function NumberButton({
       className={`flex h-9 w-9 cursor-pointer flex-col items-center justify-center rounded-lg text-sm font-normal shadow-[0_4px_10px_rgba(0,0,0,0.03)] transition-colors
       ${
         active
-          ? "text-red bg-blue-400 font-black ring-2"
-          : "font-light text-gray-900"
+          ? "bg-indigo-600 dark:bg-indigo-500 text-white font-semibold ring-2 ring-indigo-300 dark:ring-indigo-400/50"
+          : "font-medium text-gray-700 dark:text-slate-200"
       }
       ${
-        !disabled
-          ? "bg-white hover:bg-indigo-600 hover:text-white"
-          : "cursor-not-allowed bg-white text-gray-200"
+        !disabled && !active
+          ? "bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700"
+          : !active
+            ? "cursor-not-allowed bg-white dark:bg-slate-800 text-gray-300 dark:text-slate-600"
+            : ""
       }
       `}
       onClick={onClick}

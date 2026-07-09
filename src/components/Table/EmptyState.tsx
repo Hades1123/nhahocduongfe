@@ -106,7 +106,7 @@ export function TableEmpty({
     return (
       <tbody>
         <tr>
-          <td colSpan={colSpan} className="bg-white">
+          <td colSpan={colSpan} className="bg-white dark:bg-slate-900">
             {content}
           </td>
         </tr>
@@ -116,7 +116,7 @@ export function TableEmpty({
 
   // Mobile variant
   return (
-    <div className="rounded-lg border border-dashed border-gray-300 bg-white py-4">
+    <div className="rounded-lg border border-dashed border-gray-300 bg-white dark:bg-slate-900 dark:border-slate-700 py-4">
       {content}
     </div>
   );

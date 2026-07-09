@@ -373,12 +373,12 @@ const HealthCheckModal = (props: Props) => {
                     onChange={handleToggleCompare}
                   />
                   <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none"></div>
-                  <span className="ml-3 text-sm font-medium text-gray-900">
+                  <span className="ml-3 text-sm font-medium text-gray-900 dark:text-slate-100">
                     So sánh phiếu khám
                   </span>
                 </label>
                 {isCompareMode && (
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-gray-500 dark:text-slate-400">
                     (Đã chọn {selectedCompareExams.length}/2 phiếu)
                   </span>
                 )}
@@ -433,14 +433,14 @@ const HealthCheckModal = (props: Props) => {
               examIds={selectedCompareExams.map((e) => String(e.id))}
             />
           ) : (
-            <div className="rounded-lg border bg-gray-50 p-8 text-center text-gray-500">
+            <div className="rounded-lg border dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50 p-8 text-center text-gray-500 dark:text-slate-400">
               Vui lòng chọn đủ 2 phiếu khám để so sánh.
             </div>
           )
         ) : (
           <Card header="1. Tình trạng răng">
             {!selectedRecordId ? (
-              <div className="pl-4">* Chọn phiếu khám để xem chi tiết.</div>
+              <div className="pl-4 dark:text-slate-400">* Chọn phiếu khám để xem chi tiết.</div>
             ) : (
               <div className="flex flex-col gap-6">
                 <Odontogram
@@ -448,12 +448,12 @@ const HealthCheckModal = (props: Props) => {
                   ref={odontogramRef}
                 />
                 <Divider />
-                <h1 className="text-lg font-bold">
+                <h1 className="text-lg font-bold dark:text-slate-100">
                   2. Tình trạng vệ sinh răng miệng (OHI-S)
                 </h1>
                 <TeethOverall ref={plaqueRef} selectedExam={selectedRecordId} />
                 <Divider />
-                <h1 className="text-lg font-bold">3. Điều trị</h1>
+                <h1 className="text-lg font-bold dark:text-slate-100">3. Điều trị</h1>
                 <TreatmentTable
                   onChange={setTreatmentList}
                   selectedExam={selectedRecordId}
@@ -469,7 +469,7 @@ const HealthCheckModal = (props: Props) => {
 
                 {/* ── Section 4: Đánh giá mức độ bệnh lý ── */}
                 <Divider />
-                <h1 className="text-lg font-bold">
+                <h1 className="text-lg font-bold dark:text-slate-100">
                   4. Đánh giá mức độ bệnh lý
                 </h1>
                 <EditableTextarea
@@ -484,7 +484,7 @@ const HealthCheckModal = (props: Props) => {
 
                 {/* ── Section 5: Ghi chú điều trị ── */}
                 <Divider />
-                <h1 className="text-lg font-bold">5. Ghi chú điều trị</h1>
+                <h1 className="text-lg font-bold dark:text-slate-100">5. Ghi chú điều trị</h1>
                 <EditableTextarea
                   label="Nội dung ghi chú"
                   value={examDetail?.treatmentNote}
@@ -497,7 +497,7 @@ const HealthCheckModal = (props: Props) => {
 
                 {/* ── Section 6: Ảnh thực tế hàm trên và hàm dưới ── */}
                 <Divider />
-                <h1 className="text-lg font-bold">
+                <h1 className="text-lg font-bold dark:text-slate-100">
                   6. Ảnh thực tế hàm trên và hàm dưới
                 </h1>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

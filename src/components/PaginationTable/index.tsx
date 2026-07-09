@@ -198,16 +198,16 @@ const PaginationTable = React.forwardRef<any, IPaginationService>(
       <>
         {/* ═══════════════ DESKTOP TABLE (≥1024px) ═══════════════ */}
         {isDesktop ? (
-          <TableContainer component={Paper} className="relative">
+          <TableContainer component={Paper} className="relative dark:bg-slate-800 dark:text-slate-200">
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
               <TableHead>
-                <TableRow className="bg-indigo-500 text-center text-white">
+                <TableRow className="bg-indigo-500 text-center text-white dark:bg-slate-800">
                   {selectable && (
-                    <TableCellStyled className="w-12 px-4 py-3.5"></TableCellStyled>
+                    <TableCellStyled className="w-12 px-4 py-3.5 dark:border-slate-700"></TableCellStyled>
                   )}
                   {headRows.map((row: string, index: number) => (
                     <TableCellStyled
-                      className="py-3.5 pl-4 pr-3 text-white sm:pl-6 "
+                      className="py-3.5 pl-4 pr-3 text-white sm:pl-6 dark:border-slate-700"
                       key={index}
                     >
                       <div className="flex justify-center">
@@ -241,10 +241,10 @@ const PaginationTable = React.forwardRef<any, IPaginationService>(
                     selected={String(index) === String(selectedRow) || isChecked}
                     key={index}
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                    className={isChecked ? "bg-indigo-50" : ""}
+                    className={(isChecked || String(index) === String(selectedRow)) ? "bg-indigo-50 hover:bg-indigo-100 dark:bg-slate-700 dark:hover:bg-slate-600" : "even:bg-gray-50 hover:bg-gray-100 dark:even:bg-slate-800/50 dark:hover:bg-slate-800"}
                   >
                     {selectable && (
-                      <TableDataStyled className="w-12" onClick={(e) => e.stopPropagation()}>
+                      <TableDataStyled className="w-12 dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           checked={isChecked}
@@ -261,7 +261,7 @@ const PaginationTable = React.forwardRef<any, IPaginationService>(
 
                       return (
                         <TableDataStyled
-                          className="cursor-pointer"
+                          className="cursor-pointer dark:text-slate-200 dark:border-slate-700"
                           key={itemIndex}
                           component="th"
                           scope="row"
@@ -293,11 +293,11 @@ const PaginationTable = React.forwardRef<any, IPaginationService>(
               return (
                 <div
                   key={index}
-                  className={`overflow-hidden rounded-lg border bg-white shadow-sm transition-shadow hover:shadow-md ${
+                  className={`overflow-hidden rounded-lg border bg-white dark:bg-slate-800 shadow-sm transition-shadow hover:shadow-md ${
                     String(index) === String(selectedRow) || isChecked
                       ? "border-indigo-400 ring-2 ring-indigo-200"
-                      : "border-gray-200"
-                  } ${isChecked ? "bg-indigo-50" : ""}`}
+                      : "border-gray-200 dark:border-slate-700"
+                  } ${(isChecked || String(index) === String(selectedRow)) ? "bg-indigo-50 hover:bg-indigo-100 dark:bg-slate-700 dark:hover:bg-slate-600" : ""}`}
                 >
                   {/* Card Header */}
                   <div className="flex w-full items-center gap-2 px-4 py-3">
@@ -325,7 +325,7 @@ const PaginationTable = React.forwardRef<any, IPaginationService>(
                         {index + 1}
                       </span>
                       <div className="min-w-0">
-                        <span className="block truncate text-sm font-semibold text-gray-900">
+                        <span className="block truncate text-sm font-semibold text-gray-900 dark:text-slate-100">
                           {primaryValue}
                         </span>
                         {secondaryValue && (
@@ -346,7 +346,7 @@ const PaginationTable = React.forwardRef<any, IPaginationService>(
                         : "max-h-0 opacity-0"
                     } overflow-hidden`}
                   >
-                    <div className="border-t border-gray-100 px-4 py-3">
+                    <div className="border-t border-gray-100 dark:border-slate-700 px-4 py-3">
                       <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         {mappingSource.map((item: any, itemIndex: number) => {
                           const isElement = React.isValidElement(
@@ -358,11 +358,11 @@ const PaginationTable = React.forwardRef<any, IPaginationService>(
 
                           return (
                             <div key={itemIndex} className="flex flex-col py-1">
-                              <dt className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                              <dt className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">
                                 {headRows[itemIndex] ||
                                   `Column ${itemIndex + 1}`}
                               </dt>
-                              <dd className="mt-0.5 break-words text-sm text-gray-900">
+                              <dd className="mt-0.5 break-words text-sm text-gray-900 dark:text-slate-200">
                                 {value ?? "—"}
                               </dd>
                             </div>
@@ -376,7 +376,7 @@ const PaginationTable = React.forwardRef<any, IPaginationService>(
             })}
 
             {(!dataAfterSort || dataAfterSort.length === 0) && (
-              <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 text-center text-sm text-gray-500">
+              <div className="rounded-lg border border-dashed border-gray-300 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 py-8 text-center text-sm text-gray-500 dark:text-slate-400">
                 Không có dữ liệu
               </div>
             )}
@@ -391,6 +391,21 @@ const PaginationTable = React.forwardRef<any, IPaginationService>(
               variant="outlined"
               shape="rounded"
               onChange={handleChangePageNumber}
+              sx={{
+                "& .MuiPaginationItem-root": {
+                  ".dark &": {
+                    color: "#e2e8f0", // slate-200
+                    borderColor: "#475569", // slate-600
+                  },
+                },
+                "& .Mui-selected": {
+                  ".dark &": {
+                    backgroundColor: "#334155 !important", // slate-700
+                    color: "#f8fafc",
+                    borderColor: "#475569",
+                  },
+                },
+              }}
             />
           )}
         </div>

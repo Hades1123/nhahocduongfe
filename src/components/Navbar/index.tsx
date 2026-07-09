@@ -8,6 +8,7 @@ import {
   BellIcon,
   ChevronDownIcon,
   XMarkIcon,
+  Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -15,7 +16,11 @@ import { twMerge } from "tailwind-merge";
 import Modal from "@/components/Modal";
 import ChangePasswordForm from "@/pages/Login/ChangePassWord";
 import jwt_decode from "jwt-decode";
-import { notificationApi, NotificationItem } from "@/api/notificationApi";
+import {
+  notificationApi,
+  NotificationItem,
+} from "@/api/notificationApi";
+import ThemeConfig from "@/components/ThemeConfig";
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
@@ -72,17 +77,17 @@ function NavDropdown({
             leaveFrom="transform opacity-100 scale-100"
             leaveTo="transform opacity-0 scale-95"
           >
-            <Menu.Items className="absolute left-0 z-50 mt-2 w-52 origin-top-left rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+            <Menu.Items className="absolute left-0 z-50 mt-2 w-52 origin-top-left rounded-md bg-white dark:bg-slate-800 py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
               {visibleChildren.map((item) => (
                 <Menu.Item key={item.id}>
                   {({ active }) => (
                     <Link
                       to={item.slug}
                       className={classNames(
-                        active ? "bg-indigo-400" : "",
+                        active ? "bg-indigo-50 dark:bg-slate-700/50" : "",
                         pathname === item.slug
-                          ? "bg-indigo-100 font-semibold text-indigo-700"
-                          : "text-gray-700",
+                          ? "bg-indigo-100 font-semibold text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300"
+                          : "text-gray-700 dark:text-slate-200",
                         "block px-4 py-2 text-sm",
                       )}
                     >
@@ -150,7 +155,7 @@ function MobileNavGroup({
               className={twMerge(
                 "block border-l-4 py-2 pl-6 pr-4 text-sm font-medium",
                 pathname === item.slug
-                  ? "border-white bg-white font-semibold text-indigo-600"
+                  ? "border-white bg-white font-semibold text-indigo-600 dark:border-slate-800 dark:bg-slate-800 dark:text-indigo-400"
                   : "border-transparent text-white hover:bg-indigo-500 hover:text-gray-50",
               )}
             >
@@ -170,6 +175,9 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isOpenUpdatePassword, setIsOpenUpdatePassword] = useState(false);
+  // ── Theme config drawer state ──
+  // Controls the visibility of the sliding ThemeConfig panel
+  const [isThemeOpen, setIsThemeOpen] = useState(false);
 
   const token = localStorage.getItem("accessToken");
   let isGuest = false;
@@ -262,7 +270,11 @@ export default function Navbar() {
           }}
         />
       </Modal>
-      <Disclosure as="nav" className="sticky top-0 z-50 bg-indigo-600 shadow">
+      {/* Theme configuration drawer — mounts at root DOM level */}
+      <ThemeConfig isOpen={isThemeOpen} onClose={() => setIsThemeOpen(false)} />
+      {/* theme-navbar-bg: hook class for custom palette navbar background.
+           Default: bg-indigo-600 wins. Custom theme active: var(--theme-primary). */}
+      <Disclosure as="nav" className="sticky top-0 z-50 bg-indigo-600 dark:bg-slate-900 shadow theme-navbar-bg">
         {({ open, close }) => (
           <>
             <div className="w-full px-2 sm:px-6 lg:px-8">
@@ -344,7 +356,7 @@ export default function Navbar() {
                   {!isGuest && (
                     <Menu as="div" className="relative">
                       <Menu.Button
-                        className="relative rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        className="relative rounded-full bg-white dark:bg-slate-800 p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                         onClick={fetchNotifications}
                       >
                         <span className="sr-only">View notifications</span>
@@ -364,10 +376,10 @@ export default function Navbar() {
                         leaveFrom="transform opacity-100 scale-100"
                         leaveTo="transform opacity-0 scale-95"
                       >
-                        <Menu.Items className="absolute right-0 z-50 mt-2 w-80 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                        <Menu.Items className="absolute right-0 z-50 mt-2 w-80 origin-top-right rounded-md bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                           <div className="border-b px-4 py-3">
                             <div className="flex items-center justify-between">
-                              <h3 className="text-sm font-semibold text-gray-900">
+                              <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
                                 Thông báo
                               </h3>
                               {unreadCount > 0 && (
@@ -395,19 +407,15 @@ export default function Navbar() {
                                   {({ active }) => (
                                     <div
                                       className={`cursor-pointer border-b px-4 py-3 text-sm ${
-                                        active ? "bg-gray-50" : ""
-                                      } ${
-                                        !notification.isRead
-                                          ? "bg-indigo-50/50"
-                                          : ""
-                                      }`}
+                                        active ? "bg-gray-50 dark:bg-slate-700" : ""
+                                      } ${!notification.isRead ? "bg-indigo-50/50" : ""}`}
                                     >
                                       <div className="flex items-start justify-between gap-2">
                                         <div className="min-w-0 flex-1">
                                           <p
                                             className={`truncate text-sm ${
                                               !notification.isRead
-                                                ? "font-semibold text-gray-900"
+                                                ? "font-semibold text-gray-900 dark:text-slate-100"
                                                 : "text-gray-700"
                                             }`}
                                           >
@@ -416,7 +424,7 @@ export default function Navbar() {
                                           <p className="mt-1 line-clamp-2 whitespace-pre-line text-xs text-gray-500">
                                             {notification.message}
                                           </p>
-                                          <p className="mt-1 text-xs text-gray-400">
+                                          <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
                                             {new Date(
                                               notification.createdDate,
                                             ).toLocaleString("vi-VN")}
@@ -449,12 +457,24 @@ export default function Navbar() {
                   {isGuest && (
                     <button
                       type="button"
-                      className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                      className="rounded-full bg-white dark:bg-slate-800 p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
                       <span className="sr-only">View notifications</span>
                       <BellIcon className="h-6 w-6" aria-hidden="true" />
                     </button>
                   )}
+
+                  {/* ── Theme Configuration button ── */}
+                  {/* Sits between the bell and the profile menu */}
+                  <button
+                    type="button"
+                    onClick={() => setIsThemeOpen(true)}
+                    className="rounded-full bg-white dark:bg-slate-800 p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    title="Cài đặt giao diện"
+                    aria-label="Mở cài đặt giao diện"
+                  >
+                    <Cog6ToothIcon className="h-6 w-6" aria-hidden="true" />
+                  </button>
 
                   {/* Profile dropdown */}
                   <Menu as="div" className="relative ml-3">
@@ -474,15 +494,15 @@ export default function Navbar() {
                       leaveFrom="transform opacity-100 scale-100"
                       leaveTo="transform opacity-0 scale-95"
                     >
-                      <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white dark:bg-slate-800 py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                         {localStorage.getItem("username") != "guest" && (
                           <Menu.Item>
                             {({ active }) => (
                               <>
                                 <p
                                   className={classNames(
-                                    active ? "bg-gray-100" : "",
-                                    "block cursor-pointer px-4 py-2 text-sm text-gray-700",
+                                    active ? "bg-gray-100 dark:bg-slate-700/50" : "",
+                                    "block cursor-pointer px-4 py-2 text-sm text-gray-700 dark:text-slate-200",
                                   )}
                                   onClick={() => setIsOpenUpdatePassword(true)}
                                 >
@@ -498,8 +518,8 @@ export default function Navbar() {
                               // href="#"
                               onClick={() => navigate("/logout")}
                               className={classNames(
-                                active ? "bg-gray-100" : "",
-                                "block cursor-pointer px-4 py-2 text-sm text-gray-700",
+                                active ? "bg-gray-100 dark:bg-slate-700/50" : "",
+                                "block cursor-pointer px-4 py-2 text-sm text-gray-700 dark:text-slate-200",
                               )}
                             >
                               Đăng xuất
@@ -516,34 +536,36 @@ export default function Navbar() {
             {/* ---- Mobile navigation ---- */}
             <Disclosure.Panel className="sm:hidden">
               <div className="space-y-1 pb-4 pt-2">
-                {isGuest
-                  ? // Guest: show flat link(s) only
-                    guestItems.map((item) => (
-                      <Disclosure.Button
-                        key={item.id}
-                        as={Link}
-                        to={item.slug}
-                        onClick={() => close()}
-                        className={twMerge(
-                          "block border-l-4 py-2 pl-3 pr-4 text-base font-medium",
-                          location.pathname === item.slug
-                            ? "border-white bg-white font-semibold text-indigo-600"
-                            : "border-transparent text-white hover:bg-indigo-500 hover:text-gray-50",
-                        )}
-                      >
-                        {item.title}
-                      </Disclosure.Button>
-                    ))
-                  : // Authenticated: show grouped collapsible sections
-                    navMenuGroups.map((group) => (
-                      <MobileNavGroup
-                        key={group.id}
-                        group={group}
-                        isAdmin={isAdmin}
-                        pathname={location.pathname}
-                        closeMobileMenu={() => close()}
-                      />
-                    ))}
+                {isGuest ? (
+                  // Guest: show flat link(s) only
+                  guestItems.map((item) => (
+                    <Disclosure.Button
+                      key={item.id}
+                      as={Link}
+                      to={item.slug}
+                      onClick={() => close()}
+                      className={twMerge(
+                        "block border-l-4 py-2 pl-3 pr-4 text-base font-medium",
+                        location.pathname === item.slug
+                          ? "border-white bg-white font-semibold text-indigo-600 dark:bg-slate-800 dark:border-slate-800 dark:text-indigo-400"
+                          : "border-transparent text-white hover:bg-indigo-500 hover:text-gray-50",
+                      )}
+                    >
+                      {item.title}
+                    </Disclosure.Button>
+                  ))
+                ) : (
+                  // Authenticated: show grouped collapsible sections
+                  navMenuGroups.map((group) => (
+                    <MobileNavGroup
+                      key={group.id}
+                      group={group}
+                      isAdmin={isAdmin}
+                      pathname={location.pathname}
+                      closeMobileMenu={() => close()}
+                    />
+                  ))
+                )}
               </div>
             </Disclosure.Panel>
           </>
