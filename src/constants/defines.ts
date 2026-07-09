@@ -13,6 +13,7 @@ export const navMenuGroups: NavMenuGroup[] = [
         slug: slugs.patients,
       },
     ],
+    role: ["GUEST", "ADMIN"],
   },
   {
     id: uuidv4(),
@@ -34,6 +35,7 @@ export const navMenuGroups: NavMenuGroup[] = [
         slug: slugs.examCampaign + "/re-exams",
       },
     ],
+    role: ["DENTIST", "ADMIN"]
   },
   {
     id: uuidv4(),
@@ -63,17 +65,10 @@ export const navMenuGroups: NavMenuGroup[] = [
         adminOnly: true,
       },
     ],
+    role: ["ADMIN"],
   },
 ];
 
-// Flat list kept for backward compatibility (e.g., guest "Bài viết khoa học" link)
-export const navMenuItems: NavMenuItem[] = [
-  {
-    id: uuidv4(),
-    title: "Bài viết khoa học",
-    slug: slugs.dentalArticles,
-  },
-];
 
 export const reportsMenu: NavMenuItem[] = [
   {

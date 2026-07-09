@@ -5,8 +5,10 @@ export interface NavMenuItem {
   adminOnly?: boolean;
 }
 
+export type Role = "GUEST" | "ADMIN" | "DENTIST";
 export interface NavMenuGroup {
   id: string;
   label: string;
   children: NavMenuItem[];
+  role: Role[];
 }
