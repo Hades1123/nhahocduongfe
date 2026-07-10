@@ -62,7 +62,7 @@ function Autocomplete<T>({
       {label && (
         <Combobox.Label
           htmlFor={name}
-          className="mb-1 block text-sm font-semibold leading-6 text-gray-900"
+          className="mb-1 block text-sm font-semibold leading-6 text-gray-900 dark:text-slate-100"
         >
           {label}
           {required && <span className="text-red-500">*</span>}
@@ -72,8 +72,8 @@ function Autocomplete<T>({
       <div className="relative">
         <Combobox.Input
           className={twMerge(
-            "min-h-[36px] w-full rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-300 sm:text-sm",
-            disabled && "bg-gray-200 text-gray-500 cursor-not-allowed",
+            "min-h-[36px] w-full rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 py-2 pl-3 pr-10 text-left text-gray-900 dark:text-slate-100 focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-300 sm:text-sm",
+            disabled && "bg-gray-200 dark:bg-slate-700 text-gray-500 cursor-not-allowed",
           )}
           placeholder={placeholder}
           displayValue={(option: T) => (option ? getLabel(option) : "")}
@@ -92,7 +92,7 @@ function Autocomplete<T>({
         </Combobox.Button>
       </div>
 
-      <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+      <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-slate-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
         {loading ? (
           <div className="relative cursor-default select-none px-4 py-2 text-gray-500">
             Đang tải dữ liệu...
@@ -112,9 +112,9 @@ function Autocomplete<T>({
               value={option}
               className={({ active, selected }) =>
                 twMerge(
-                  "relative cursor-default select-none py-2 pl-3 pr-9",
-                  active && "bg-indigo-100 text-indigo-900",
-                  selected && "font-semibold bg-indigo-50",
+                  "relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 dark:text-slate-200",
+                  active && "bg-indigo-100 text-indigo-900 dark:bg-indigo-900/50 dark:text-indigo-200",
+                  selected && "font-semibold bg-indigo-50 dark:bg-slate-700/50 dark:text-slate-100",
                 )
               }
             >

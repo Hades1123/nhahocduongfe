@@ -32,7 +32,7 @@ const RadioButton = ({
       />
       <label
         htmlFor={id}
-        className="ml-3 block text-sm font-semibold leading-6 text-gray-900"
+        className="ml-3 block text-sm font-semibold leading-6 text-gray-900 dark:text-slate-100"
       >
         {label}
       </label>

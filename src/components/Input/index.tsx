@@ -6,6 +6,7 @@ interface Props {
   label?: string;
   value?: string | number;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   name?: string;
   placeholder?: string;
@@ -58,7 +59,7 @@ const CustomInput = (
       {label && (
         <label
           htmlFor={name}
-          className="block text-sm font-semibold leading-6 text-gray-900"
+          className="block text-sm font-semibold leading-6 text-gray-900 dark:text-slate-100"
         >
           {label} {required && <span className="text-red-500">*</span>}
         </label>
@@ -73,12 +74,12 @@ const CustomInput = (
             ref={ref}
             value={value}
             className={twMerge(
-              "block  h-full w-full rounded-md border-0 px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6",
+              "block  h-full w-full rounded-md border-0 px-4 py-1.5 text-gray-900 dark:text-slate-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-slate-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:focus:ring-indigo-500/50 sm:text-sm sm:leading-6 dark:bg-slate-800",
               hasEndIcon && "pr-11",
               hasAddOnBefore && "rounded-l-none",
               hasAddOnAfter && "rounded-r-none",
               hasStartIcon && "pl-11",
-              "disabled:bg-gray-200",
+              "disabled:bg-gray-200 dark:disabled:bg-slate-700",
               inputClass,
             )}
             placeholder={placeholder}
@@ -130,7 +131,7 @@ interface AddOnProps {
 }
 
 const addOnStyles =
-  "flex items-center border bg-gray-100 px-3 text-gray-500 text-sm font-medium";
+  "flex items-center border bg-gray-100 dark:bg-slate-700 px-3 text-gray-500 dark:text-slate-300 dark:border-slate-600 text-sm font-medium";
 
 const AddOnBefore: React.FC<AddOnProps> = ({ value }) => {
   return (

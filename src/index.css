@@ -1,3 +1,235 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * ════════════════════════════════════════════════════════════════════════════════
+ * CSS Custom Properties — Theme System
+ * ════════════════════════════════════════════════════════════════════════════════
+ *
+ * These variables are the "contract" between themeApplicator.ts (JS) and CSS.
+ * themeApplicator.ts sets them dynamically on <html> whenever a palette changes.
+ *
+ * The values below are FALLBACKS that apply before JS hydrates.
+ * They match the default "Indigo" built-in palette.
+ *
+ * Variable roles:
+ *   --theme-primary   → Main brand color  (navbar bg, primary buttons)
+ *   --theme-secondary → Complementary     (hover states, secondary elements)
+ *   --theme-accent    → Highlight color   (badges, tags, selected chips)
+ *   --theme-neutral   → Subtle background (card surfaces, table stripe)
+ *
+ * RGB triplet variants (used for rgba() opacity compositing):
+ *   --theme-primary-rgb → "79,70,229" (no # prefix; used as rgba(var(...), 0.1))
+ */
+:root {
+  --theme-primary:       #4f46e5;
+  --theme-secondary:     #818cf8;
+  --theme-accent:        #c7d2fe;
+  --theme-neutral:       #e0e7ff;
+
+  /* RGB triplets for opacity compositing */
+  --theme-primary-rgb:   79,70,229;
+  --theme-secondary-rgb: 129,140,248;
+  --theme-accent-rgb:    199,210,254;
+  --theme-neutral-rgb:   224,231,255;
+}
+
+/*
+ * ════════════════════════════════════════════════════════════════════════════════
+ * @layer utilities — Theme Hook Classes
+ * ════════════════════════════════════════════════════════════════════════════════
+ *
+ * ARCHITECTURE:
+ * These utility "hook" classes are the core of the selective application strategy.
+ *
+ * How it works:
+ *   1. These classes are added to macro-container components (Navbar, Card,
+ *      Table, Button, Modal, Layout) in the JSX as static class strings.
+ *
+ *   2. When the DEFAULT palette is active, the data attribute
+ *      [data-custom-theme="active"] is NOT present on <html>.
+ *      → These classes do nothing. Tailwind defaults win. App looks normal.
+ *
+ *   3. When a CUSTOM palette is selected, themeApplicator.ts sets
+ *      <html data-custom-theme="active">.
+ *      → The [data-custom-theme="active"] ancestor selector matches.
+ *      → The !important declaration overrides the default Tailwind utility.
+ *      → The component uses var(--theme-primary), etc. from the active palette.
+ *
+ *   4. Any component that should NOT be themed simply omits the hook class.
+ *      It safely falls back to its default Tailwind colors.
+ *
+ * NAMING CONVENTION:
+ *   .theme-{component}-{property}
+ *   e.g. .theme-navbar-bg, .theme-button-bg, .theme-card-bg
+ *
+ * WHY !important:
+ *   Tailwind utility classes have high specificity. The [data-custom-theme]
+ *   ancestor selector alone isn't enough to beat a utility like .bg-indigo-600.
+ *   !important is safe here because it ONLY activates when the data attribute
+ *   is present — i.e. the user has explicitly opted into a custom theme.
+ */
+@layer utilities {
+
+  /* ─── Navbar ─────────────────────────────────────────────────────────────── */
+  /* Applied to: <nav> element in Navbar/index.tsx (replaces bg-indigo-600) */
+  .theme-navbar-bg {
+    /* no-op by default — Tailwind bg-indigo-600 remains active */
+  }
+  [data-custom-theme="active"] .theme-navbar-bg {
+    background-color: var(--theme-primary) !important;
+  }
+
+  /* ─── Page Background ───────────────────────────────────────────────────── */
+  /* Applied to: root <div> in Layout/index.tsx (replaces bg-slate-50) */
+  .theme-page-bg {
+    /* no-op by default */
+  }
+  [data-custom-theme="active"] .theme-page-bg {
+    background-color: var(--theme-neutral) !important;
+  }
+
+  /* ─── Card ──────────────────────────────────────────────────────────────── */
+  /* Applied to: outer <div> in Card/index.tsx (replaces bg-white) */
+  .theme-card-bg {
+    /* no-op by default */
+  }
+  [data-custom-theme="active"] .theme-card-bg {
+    background-color: var(--theme-neutral) !important;
+  }
+
+  .theme-card-border {
+    /* no-op by default */
+  }
+  [data-custom-theme="active"] .theme-card-border {
+    border-color: var(--theme-accent) !important;
+  }
+
+  /* ─── Button (contained/primary variant) ────────────────────────────────── */
+  /* Applied to: <button> in Button/index.tsx (replaces bg-indigo-600) */
+  .theme-button-bg {
+    /* no-op by default */
+  }
+  [data-custom-theme="active"] .theme-button-bg {
+    background-color: var(--theme-primary) !important;
+  }
+
+  .theme-button-hover {
+    /* no-op by default */
+  }
+  [data-custom-theme="active"] .theme-button-hover:hover {
+    background-color: var(--theme-secondary) !important;
+  }
+
+  .theme-button-focus {
+    /* no-op by default */
+  }
+  [data-custom-theme="active"] .theme-button-focus:focus-visible {
+    outline-color: var(--theme-primary) !important;
+  }
+
+  /* ─── Table ─────────────────────────────────────────────────────────────── */
+  /* Applied to: <thead> in Table/index.tsx (replaces bg-indigo-500) */
+  .theme-table-head {
+    /* no-op by default */
+  }
+  [data-custom-theme="active"] .theme-table-head {
+    background-color: var(--theme-primary) !important;
+  }
+
+  /* Applied to: <tbody> in Table/index.tsx (replaces bg-white) */
+  .theme-table-body-bg {
+    /* no-op by default */
+  }
+  [data-custom-theme="active"] .theme-table-body-bg {
+    background-color: var(--theme-neutral) !important;
+  }
+
+  /* Applied to: <tr> even rows (replaces even:bg-gray-50) */
+  .theme-table-row-alt {
+    /* no-op by default */
+  }
+  [data-custom-theme="active"] .theme-table-row-alt:nth-child(even) {
+    background-color: var(--theme-accent) !important;
+  }
+
+  /* Applied to: <tr> hover (replaces hover:bg-gray-100) */
+  .theme-table-row-hover {
+    /* no-op by default */
+  }
+  [data-custom-theme="active"] .theme-table-row-hover:hover {
+    background-color: var(--theme-accent) !important;
+    opacity: 0.85;
+  }
+
+  /* ─── Modal ─────────────────────────────────────────────────────────────── */
+  /* Applied to: modal header bar in Modal/index.tsx (replaces bg-indigo-600) */
+  .theme-modal-header {
+    /* no-op by default */
+  }
+  [data-custom-theme="active"] .theme-modal-header {
+    background-color: var(--theme-primary) !important;
+  }
+
+  /* Applied to: modal body panel in Modal/index.tsx (replaces bg-white) */
+  .theme-modal-body {
+    /* no-op by default */
+  }
+  [data-custom-theme="active"] .theme-modal-body {
+    background-color: var(--theme-neutral) !important;
+  }
+
+  /* ─── Mobile Card Header (Table mobile view) ────────────────────────────── */
+  /* Applied to: mobile card STT badge (replaces bg-indigo-500) */
+  .theme-badge-bg {
+    /* no-op by default */
+  }
+  [data-custom-theme="active"] .theme-badge-bg {
+    background-color: var(--theme-primary) !important;
+  }
+
+  /* Applied to: mobile "Xem chi tiết" action button */
+  .theme-action-text {
+    /* no-op by default */
+  }
+  [data-custom-theme="active"] .theme-action-text {
+    color: var(--theme-primary) !important;
+  }
+  [data-custom-theme="active"] .theme-action-text:hover {
+    background-color: rgba(var(--theme-primary-rgb), 0.1) !important;
+  }
+
+  /* ─── Focus Ring Adaptation ─────────────────────────────────────────────── */
+  /* Applied to interactive elements that use ring-indigo-500 */
+  .theme-ring-focus {
+    /* no-op by default */
+  }
+  [data-custom-theme="active"] .theme-ring-focus:focus {
+    --tw-ring-color: var(--theme-primary) !important;
+  }
+}
+
+/*
+ * ════════════════════════════════════════════════════════════════════════════════
+ * Dark Mode Base Overrides
+ * ════════════════════════════════════════════════════════════════════════════════
+ *
+ * When Tailwind's `darkMode: 'class'` is active (i.e. <html class="dark">),
+ * these rules provide the structural dark theme for the entire app.
+ *
+ * These are SEPARATE from the custom theme hook classes above.
+ * Dark mode can co-exist with a custom palette:
+ *   - Dark mode controls: background darkness, text lightness
+ *   - Custom palette controls: accent colors (via hook classes)
+ *
+ * Dark mode overrides use the html.dark selector to target structural elements.
+ * They do NOT use !important — they rely on specificity from the html.dark prefix.
+ */
+
+/* Body background and text in dark mode */
+html.dark body {
+  background-color: #0f0f1a;
+  color: #e2e8f0;
+}
+

@@ -338,6 +338,7 @@ const UpdateHealthCheckButton = ({ onSuccess }: any) => {
 
   return (
     <>
+      <Button onClick={() => setShow(true)}>Tạo mới phiếu khám</Button>
       {show && (
         <UpdateHealthCheckModal
           isShow={show}

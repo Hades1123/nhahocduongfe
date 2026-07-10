@@ -7,7 +7,10 @@ interface CardProps {
 }
 const Card = ({ children, header, className }: CardProps) => {
   return (
-    <div className="divide-y divide-gray-200  rounded-lg bg-white shadow">
+    /* theme-card-bg + theme-card-border: hook classes for custom palette.
+       Default: bg-white + divide-gray-200 (Tailwind defaults).
+       Custom theme active: var(--theme-neutral) bg + var(--theme-accent) border. */
+    <div className="divide-y divide-gray-200 dark:divide-slate-700 rounded-lg bg-white dark:bg-slate-800 shadow dark:text-slate-100 theme-card-bg theme-card-border">
       {header && (
         <h1 className="px-4 py-5 text-lg font-bold sm:px-6">{header}</h1>
       )}

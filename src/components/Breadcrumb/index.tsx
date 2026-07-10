@@ -151,7 +151,7 @@ export default function Breadcrumb() {
   const crumbs = buildBreadcrumbs(location.pathname);
 
   return (
-    <nav className="flex" aria-label="Breadcrumb">
+    <nav className="flex px-4 sm:px-0" aria-label="Breadcrumb">
       <ol role="list" className="flex items-center space-x-2">
         {/* Home icon – always present */}
         <li>

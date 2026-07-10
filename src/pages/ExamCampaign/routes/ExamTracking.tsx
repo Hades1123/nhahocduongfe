@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { api } from "@/api/api";
 import Button from "@/components/Button";
-import Card from "@/components/Card";
 import Table from "@/components/Table";
 import { TableColumn } from "@/components/Table/type";
 import Swal from "sweetalert2";
@@ -81,7 +79,9 @@ const ExamTracking = () => {
     if (!selectedCampaignId) return;
     setNotifying(true);
     try {
-      const res = await api.post(`/api/exam-campaigns/${selectedCampaignId}/notify`);
+      const res = await api.post(
+        `/api/exam-campaigns/${selectedCampaignId}/notify`,
+      );
       const data = res.data;
       const count = data.notifiedCount || 0;
       Swal.fire(
@@ -90,7 +90,10 @@ const ExamTracking = () => {
         "success",
       );
     } catch (e: any) {
-      const errorMsg = e?.response?.data?.detail || e?.response?.data?.message || "Không thể gửi thông báo";
+      const errorMsg =
+        e?.response?.data?.detail ||
+        e?.response?.data?.message ||
+        "Không thể gửi thông báo";
       Swal.fire("Lỗi", errorMsg, "error");
     } finally {
       setNotifying(false);
@@ -129,16 +132,16 @@ const ExamTracking = () => {
 
   return (
     <div className="p-4">
-      <h1 className="mb-4 text-2xl font-bold">Theo dõi trạng thái khám</h1>
+      <h1 className="mb-4 text-2xl font-bold dark:text-slate-100">Theo dõi trạng thái khám</h1>
 
       {/* Campaign selector */}
       <div className="mb-4 flex flex-col gap-3">
         <div className="flex items-center gap-3">
-          <label className="text-sm font-medium text-gray-700">
+          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
             Chọn đợt khám:
           </label>
           <select
-            className="text-ellipsis rounded border text-sm md:max-w-56 md:overflow-x-auto"
+            className="text-ellipsis rounded border dark:border-slate-700 bg-white dark:bg-slate-800 text-sm md:max-w-56 md:overflow-x-auto dark:text-slate-200"
             value={selectedCampaignId ?? ""}
             onChange={(e) => setSelectedCampaignId(Number(e.target.value))}
           >
@@ -157,13 +160,13 @@ const ExamTracking = () => {
 
         {/* Dentists list */}
         {dentists.length > 0 && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-300">
             <span className="font-medium">Bác sĩ phụ trách:</span>
             <div className="flex flex-wrap gap-2">
               {dentists.map((dentist, idx) => (
                 <span
                   key={idx}
-                  className="rounded-full border border-blue-200 bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800"
+                  className="rounded-full border border-blue-200 dark:border-blue-800 bg-blue-100 dark:bg-blue-900/30 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-300"
                 >
                   {dentist}
                 </span>
@@ -175,17 +178,17 @@ const ExamTracking = () => {
 
       {/* Stats */}
       <div className="mb-4 grid grid-cols-3 gap-4">
-        <div className="rounded border bg-white p-4 text-center shadow-sm">
-          <p className="text-3xl font-bold text-gray-800">{students.length}</p>
-          <p className="text-sm text-gray-500">Tổng học sinh</p>
+        <div className="rounded border dark:border-slate-700 bg-white dark:bg-slate-800 p-4 text-center shadow-sm">
+          <p className="text-3xl font-bold text-gray-800 dark:text-slate-100">{students.length}</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">Tổng học sinh</p>
         </div>
-        <div className="rounded border border-l-4 border-green-500 bg-white p-4 text-center shadow-sm">
-          <p className="text-3xl font-bold text-green-600">{examinedCount}</p>
-          <p className="text-sm text-gray-500">Đã khám</p>
+        <div className="rounded border border-l-4 border-gray-200 dark:border-slate-700 border-l-green-500 dark:border-l-green-500 bg-white dark:bg-slate-800 p-4 text-center shadow-sm">
+          <p className="text-3xl font-bold text-green-600 dark:text-green-500">{examinedCount}</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">Đã khám</p>
         </div>
-        <div className="rounded border border-l-4 border-red-400 bg-white p-4 text-center shadow-sm">
-          <p className="text-3xl font-bold text-red-500">{notExaminedCount}</p>
-          <p className="text-sm text-gray-500">Chưa khám</p>
+        <div className="rounded border border-l-4 border-gray-200 dark:border-slate-700 border-l-red-400 dark:border-l-red-500 bg-white dark:bg-slate-800 p-4 text-center shadow-sm">
+          <p className="text-3xl font-bold text-red-500 dark:text-red-400">{notExaminedCount}</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">Chưa khám</p>
         </div>
       </div>
 
@@ -199,7 +202,7 @@ const ExamTracking = () => {
               className={`rounded px-3 py-1 text-sm font-medium ${
                 filterStatus === f
                   ? "bg-indigo-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
               }`}
             >
               {f === "ALL"

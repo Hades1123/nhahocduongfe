@@ -124,9 +124,9 @@ export default function ImageUploadBox({
   if (loading) {
     return (
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-semibold text-gray-700">{label}</label>
+        <label className="text-sm font-semibold text-gray-700 dark:text-slate-200">{label}</label>
         <div className="animate-pulse">
-          <div className="flex h-48 w-full items-center justify-center rounded-lg bg-gray-200">
+          <div className="flex h-48 w-full items-center justify-center rounded-lg bg-gray-200 dark:bg-slate-700">
             <span className="text-gray-400">Đang tải...</span>
           </div>
         </div>
@@ -136,11 +136,11 @@ export default function ImageUploadBox({
 
   return (
     <div className="flex flex-col gap-2">
-      <label className="text-sm font-semibold text-gray-700">{label}</label>
+      <label className="text-sm font-semibold text-gray-700 dark:text-slate-200">{label}</label>
 
       {imageUrl ? (
         /* ── Có ảnh: Hiển thị ảnh + actions ── */
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
           {/* Ảnh thumbnail */}
           <div
             className="group relative cursor-pointer"
@@ -162,7 +162,7 @@ export default function ImageUploadBox({
           </div>
 
           {/* Footer: thời gian + action buttons */}
-          <div className="flex items-center justify-between bg-gray-50 px-3 py-2">
+          <div className="flex items-center justify-between bg-gray-50 dark:bg-slate-800/50 border-t border-transparent dark:border-slate-700 px-3 py-2">
             <span className="text-xs text-gray-500">
               {formatTime(imageTime)}
             </span>
@@ -172,7 +172,7 @@ export default function ImageUploadBox({
                 type="button"
                 disabled={uploading || deleting}
                 onClick={() => fileInputRef.current?.click()}
-                className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center gap-1 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 py-1 text-xs font-medium text-gray-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
                 title="Thay ảnh khác"
               >
                 {uploading ? (
@@ -207,7 +207,7 @@ export default function ImageUploadBox({
                 type="button"
                 disabled={uploading || deleting}
                 onClick={handleDelete}
-                className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-white px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center gap-1 rounded-md border border-red-200 dark:border-red-900/50 bg-white dark:bg-slate-800 px-2 py-1 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:cursor-not-allowed disabled:opacity-50"
                 title="Xóa ảnh"
               >
                 {deleting ? (
@@ -248,8 +248,8 @@ export default function ImageUploadBox({
           onClick={() => fileInputRef.current?.click()}
           className={`flex aspect-square cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed transition-colors ${
             dragOver
-              ? "border-indigo-500 bg-indigo-50"
-              : "border-gray-300 bg-gray-50 hover:border-indigo-400 hover:bg-indigo-50/50"
+              ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
+              : "border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/50 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10"
           }`}
         >
           {uploading ? (

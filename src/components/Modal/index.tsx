@@ -64,12 +64,12 @@ const Modal = ({
               <Dialog.Panel
                 style={{ marginTop: "6rem", width: width ? width : "auto" }}
                 className={twMerge(
-                  "relative transform rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-[70vw] sm:p-6",
+                  "relative transform rounded-lg bg-white dark:bg-slate-900 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-[70vw] sm:p-6 theme-modal-body",
                   // "overflow-hidden",
                   className,
                 )}
               >
-                <div className="absolute left-0 right-0 top-0 flex  items-center  justify-between bg-indigo-600 px-4">
+                <div className="absolute left-0 right-0 top-0 flex  items-center  justify-between bg-indigo-600 dark:bg-slate-800 px-4 theme-modal-header">
                   <h1 className="font-bold text-white">{title}</h1>
                   <button
                     type="button"

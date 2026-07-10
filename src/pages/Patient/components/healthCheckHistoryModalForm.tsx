@@ -113,28 +113,28 @@ const HealthCheckModal = (props: Props) => {
   const teethMutation = useMutation(() =>
     api.post(`/api/patients/${id}/exams/${rowIndex.current}/teethRecord`, {
       record: odontogramRef.current,
-    })
+    }),
   );
 
   const plaqueMutation = useMutation(() =>
     api.post(
       `/api/patients/${id}/exams/${rowIndex.current}/plaqueRecord`,
       mapping(plaqueRef.current).plaqueRecord,
-    )
+    ),
   );
 
   const tartarMutation = useMutation(() =>
     api.post(
       `/api/patients/${id}/exams/${rowIndex.current}/tartarRecord`,
       mapping(plaqueRef.current).tartarRecord,
-    )
+    ),
   );
 
   const treatmentMutation = useMutation(() =>
     api.post(
       `/api/patients/${id}/exams/${rowIndex.current}/treatmentRecord`,
       treatmentList,
-    )
+    ),
   );
 
   function padTo2Digits(num: number) {
@@ -150,11 +150,11 @@ const HealthCheckModal = (props: Props) => {
   }
 
   const updateExamMutation = useMutation((payload: any) =>
-    api.put(`/api/patients/${id}/exams`, payload)
+    api.put(`/api/patients/${id}/exams`, payload),
   );
 
   const deleteExamMutation = useMutation((examId: any) =>
-    api.delete(`/api/exams/${examId}`)
+    api.delete(`/api/exams/${examId}`),
   );
 
   const isSubmitting =
@@ -191,9 +191,7 @@ const HealthCheckModal = (props: Props) => {
     // Fetch exam detail để lấy dữ liệu sections 4, 5, 6
     setDetailLoading(true);
     try {
-      const res = await api.get(
-        `/api/patients/${id}/exams/${record.id}`
-      );
+      const res = await api.get(`/api/patients/${id}/exams/${record.id}`);
       setExamDetail(res.data);
     } catch (err) {
       console.error("Lỗi khi tải chi tiết phiếu khám:", err);
@@ -244,7 +242,9 @@ const HealthCheckModal = (props: Props) => {
           const payload = {
             id: rowIndex.current,
             dentistId: 2,
-            organizationId: patient.organization?.id ? patient.organization.id : 1,
+            organizationId: patient.organization?.id
+              ? patient.organization.id
+              : 1,
             schoolClass: patient.schoolClass,
             date: formatDate(new Date()),
             year: new Date().getFullYear(),
@@ -279,21 +279,26 @@ const HealthCheckModal = (props: Props) => {
   };
 
   // ── PATCH: Cập nhật đánh giá bệnh lý & ghi chú điều trị (mục 4 & 5) ──
-  const handleSaveAssessment = async (field: "pathologyAssessment" | "treatmentNote", newValue: string) => {
+  const handleSaveAssessment = async (
+    field: "pathologyAssessment" | "treatmentNote",
+    newValue: string,
+  ) => {
     if (!selectedRecordId) return;
     const body: any = {};
     body[field] = newValue;
     await api.patch(`/api/exams/${selectedRecordId}/assessment`, body);
     // Refresh exam detail
     setExamDetail((prev: any) => ({ ...prev, [field]: newValue }));
-    queryClient.invalidateQueries([`/api/patients/${id}/exams/${selectedRecordId}`]);
+    queryClient.invalidateQueries([
+      `/api/patients/${id}/exams/${selectedRecordId}`,
+    ]);
   };
 
   // ── PATCH: Cập nhật ảnh (mục 6) ──
   const handleImageUploaded = async (
     side: "upper" | "lower",
     publicUrl: string,
-    uploadedAt: string
+    uploadedAt: string,
   ) => {
     if (!selectedRecordId) return;
     const body: any = {};
@@ -332,7 +337,7 @@ const HealthCheckModal = (props: Props) => {
       <div className="flex flex-col gap-8 px-3 pb-2 pt-4 sm:px-6">
         <Card>
           <>
-            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+            <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
               {/* Date filters */}
               <div className="grid grid-cols-2 gap-3 sm:flex sm:gap-3">
                 <Input
@@ -358,21 +363,30 @@ const HealthCheckModal = (props: Props) => {
                 <Button onClick={handleSearch}>Tìm kiếm</Button>
               </div>
             </div>
-            <div className="mb-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap items-center gap-3">
                 <label className="relative inline-flex cursor-pointer items-center">
-                  <input type="checkbox" className="sr-only peer" checked={isCompareMode} onChange={handleToggleCompare} />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                  <span className="ml-3 text-sm font-medium text-gray-900">So sánh phiếu khám</span>
+                  <input
+                    type="checkbox"
+                    className="peer sr-only"
+                    checked={isCompareMode}
+                    onChange={handleToggleCompare}
+                  />
+                  <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none"></div>
+                  <span className="ml-3 text-sm font-medium text-gray-900 dark:text-slate-100">
+                    So sánh phiếu khám
+                  </span>
                 </label>
                 {isCompareMode && (
-                   <span className="text-sm text-gray-500">
-                     (Đã chọn {selectedCompareExams.length}/2 phiếu)
-                   </span>
+                  <span className="text-sm text-gray-500 dark:text-slate-400">
+                    (Đã chọn {selectedCompareExams.length}/2 phiếu)
+                  </span>
                 )}
               </div>
               <div className="flex content-end justify-end">
-                {!isCompareMode && <UpdateHeathCheckHistory onSuccess={handleRefresh} />}
+                {!isCompareMode && (
+                  <UpdateHeathCheckHistory onSuccess={handleRefresh} />
+                )}
               </div>
             </div>
             <PaginationTable
@@ -384,10 +398,10 @@ const HealthCheckModal = (props: Props) => {
               onRowSelected={isCompareMode ? undefined : handleRecordClicked}
               searchValues={searchValues}
               selectable={isCompareMode}
-              selectedKeys={selectedCompareExams.map(r => r.id)}
+              selectedKeys={selectedCompareExams.map((r) => r.id)}
               onSelectChange={handleCompareSelection}
               maxSelect={2}
-              renderAction={(row: any) => (
+              renderAction={(row: any) =>
                 isCompareMode ? null : (
                   <div className="flex gap-2">
                     <Button
@@ -408,122 +422,122 @@ const HealthCheckModal = (props: Props) => {
                     </Button>
                   </div>
                 )
-              )}
+              }
             />
           </>
         </Card>
         {isCompareMode ? (
           selectedCompareExams.length === 2 ? (
             <CompareExamsView
-               patientId={id || ""}
-               examIds={selectedCompareExams.map(e => String(e.id))}
+              patientId={id || ""}
+              examIds={selectedCompareExams.map((e) => String(e.id))}
             />
           ) : (
-            <div className="p-8 text-center text-gray-500 border rounded-lg bg-gray-50">
-               Vui lòng chọn đủ 2 phiếu khám để so sánh.
+            <div className="rounded-lg border dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50 p-8 text-center text-gray-500 dark:text-slate-400">
+              Vui lòng chọn đủ 2 phiếu khám để so sánh.
             </div>
           )
         ) : (
-        <Card header="1. Tình trạng răng">
-          {!selectedRecordId ? (
-            <div className="pl-4">* Chọn phiếu khám để xem chi tiết.</div>
-          ) : (
-            <div className="flex flex-col gap-6">
-              <Odontogram
-                selectedTreatment={selectedRecordId}
-                ref={odontogramRef}
-              />
-              <Divider />
-              <h1 className="text-lg font-bold">
-                2. Tình trạng vệ sinh răng miệng (OHI-S)
-              </h1>
-              <TeethOverall ref={plaqueRef} selectedExam={selectedRecordId} />
-              <Divider />
-              <h1 className="text-lg font-bold">3. Điều trị</h1>
-              <TreatmentTable
-                onChange={setTreatmentList}
-                selectedExam={selectedRecordId}
-                ref={treatmentTableRef}
-                odontogramRef={odontogramRef}
-              />
-              <Checkbox
-                name="veneerFlour"
-                label="Bôi Veneer Flour"
-                onChange={handleChange}
-                checked={checked}
-              />
-
-              {/* ── Section 4: Đánh giá mức độ bệnh lý ── */}
-              <Divider />
-              <h1 className="text-lg font-bold">
-                4. Đánh giá mức độ bệnh lý
-              </h1>
-              <EditableTextarea
-                label="Nội dung đánh giá"
-                value={examDetail?.pathologyAssessment}
-                placeholder="Nhập đánh giá mức độ bệnh lý..."
-                loading={detailLoading}
-                onSave={(newValue) =>
-                  handleSaveAssessment("pathologyAssessment", newValue)
-                }
-              />
-
-              {/* ── Section 5: Ghi chú điều trị ── */}
-              <Divider />
-              <h1 className="text-lg font-bold">5. Ghi chú điều trị</h1>
-              <EditableTextarea
-                label="Nội dung ghi chú"
-                value={examDetail?.treatmentNote}
-                placeholder="Nhập ghi chú điều trị..."
-                loading={detailLoading}
-                onSave={(newValue) =>
-                  handleSaveAssessment("treatmentNote", newValue)
-                }
-              />
-
-              {/* ── Section 6: Ảnh thực tế hàm trên và hàm dưới ── */}
-              <Divider />
-              <h1 className="text-lg font-bold">
-                6. Ảnh thực tế hàm trên và hàm dưới
-              </h1>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <ImageUploadBox
-                  label="Ảnh hàm trên"
-                  folder="upper"
-                  imageUrl={examDetail?.imageUpperUrl}
-                  imageTime={examDetail?.imageUpperTime}
-                  loading={detailLoading}
-                  onUploaded={(url, time) =>
-                    handleImageUploaded("upper", url, time)
-                  }
-                  onDeleted={() => handleImageDeleted("upper")}
+          <Card header="1. Tình trạng răng">
+            {!selectedRecordId ? (
+              <div className="pl-4 dark:text-slate-400">* Chọn phiếu khám để xem chi tiết.</div>
+            ) : (
+              <div className="flex flex-col gap-6">
+                <Odontogram
+                  selectedTreatment={selectedRecordId}
+                  ref={odontogramRef}
                 />
-                <ImageUploadBox
-                  label="Ảnh hàm dưới"
-                  folder="lower"
-                  imageUrl={examDetail?.imageLowerUrl}
-                  imageTime={examDetail?.imageLowerTime}
-                  loading={detailLoading}
-                  onUploaded={(url, time) =>
-                    handleImageUploaded("lower", url, time)
-                  }
-                  onDeleted={() => handleImageDeleted("lower")}
+                <Divider />
+                <h1 className="text-lg font-bold dark:text-slate-100">
+                  2. Tình trạng vệ sinh răng miệng (OHI-S)
+                </h1>
+                <TeethOverall ref={plaqueRef} selectedExam={selectedRecordId} />
+                <Divider />
+                <h1 className="text-lg font-bold dark:text-slate-100">3. Điều trị</h1>
+                <TreatmentTable
+                  onChange={setTreatmentList}
+                  selectedExam={selectedRecordId}
+                  ref={treatmentTableRef}
+                  odontogramRef={odontogramRef}
                 />
+                <Checkbox
+                  name="veneerFlour"
+                  label="Bôi Veneer Flour"
+                  onChange={handleChange}
+                  checked={checked}
+                />
+
+                {/* ── Section 4: Đánh giá mức độ bệnh lý ── */}
+                <Divider />
+                <h1 className="text-lg font-bold dark:text-slate-100">
+                  4. Đánh giá mức độ bệnh lý
+                </h1>
+                <EditableTextarea
+                  label="Nội dung đánh giá"
+                  value={examDetail?.pathologyAssessment}
+                  placeholder="Nhập đánh giá mức độ bệnh lý..."
+                  loading={detailLoading}
+                  onSave={(newValue) =>
+                    handleSaveAssessment("pathologyAssessment", newValue)
+                  }
+                />
+
+                {/* ── Section 5: Ghi chú điều trị ── */}
+                <Divider />
+                <h1 className="text-lg font-bold dark:text-slate-100">5. Ghi chú điều trị</h1>
+                <EditableTextarea
+                  label="Nội dung ghi chú"
+                  value={examDetail?.treatmentNote}
+                  placeholder="Nhập ghi chú điều trị..."
+                  loading={detailLoading}
+                  onSave={(newValue) =>
+                    handleSaveAssessment("treatmentNote", newValue)
+                  }
+                />
+
+                {/* ── Section 6: Ảnh thực tế hàm trên và hàm dưới ── */}
+                <Divider />
+                <h1 className="text-lg font-bold dark:text-slate-100">
+                  6. Ảnh thực tế hàm trên và hàm dưới
+                </h1>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <ImageUploadBox
+                    label="Ảnh hàm trên"
+                    folder="upper"
+                    imageUrl={examDetail?.imageUpperUrl}
+                    imageTime={examDetail?.imageUpperTime}
+                    loading={detailLoading}
+                    onUploaded={(url, time) =>
+                      handleImageUploaded("upper", url, time)
+                    }
+                    onDeleted={() => handleImageDeleted("upper")}
+                  />
+                  <ImageUploadBox
+                    label="Ảnh hàm dưới"
+                    folder="lower"
+                    imageUrl={examDetail?.imageLowerUrl}
+                    imageTime={examDetail?.imageLowerTime}
+                    loading={detailLoading}
+                    onUploaded={(url, time) =>
+                      handleImageUploaded("lower", url, time)
+                    }
+                    onDeleted={() => handleImageDeleted("lower")}
+                  />
+                </div>
               </div>
-            </div>
-          )}
-          <div className="mt-5 flex justify-end gap-4">
-            {selectedRecordId && (
-              <Button
-                onClick={handleSubmit}
-                variants="contained"
-                isDisabled={isSubmitting}
-              >
-                {isSubmitting ? "Đang xử lý..." : "Chỉnh sửa phiếu khám"}
-              </Button>
             )}
-          </div>
-        </Card>
+            <div className="mt-5 flex justify-end gap-4">
+              {selectedRecordId && (
+                <Button
+                  onClick={handleSubmit}
+                  variants="contained"
+                  isDisabled={isSubmitting}
+                >
+                  {isSubmitting ? "Đang xử lý..." : "Chỉnh sửa phiếu khám"}
+                </Button>
+              )}
+            </div>
+          </Card>
         )}
         <div className="flex justify-end gap-4">
           <Button onClick={handleBack} variants="outlined">

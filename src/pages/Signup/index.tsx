@@ -34,6 +34,12 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Các state phục vụ xác thực OTP
+  const [step, setStep] = useState<1 | 2>(1);
+  const [countdown, setCountdown] = useState<number>(300);
+  const [otp, setOtp] = useState<string>("");
+  const [otpError, setOtpError] = useState<string>("");
+
   useEffect(() => {
     fetchRoles();
     fetchOrganizations();
@@ -68,6 +74,134 @@ const Signup = () => {
       setOrganizations([]);
     } finally {
       setOrgsLoading(false);
+    }
+  };
+
+  // Đếm ngược thời gian OTP
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    if (step === 2) {
+      setCountdown(300);
+      timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            if (timer) clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [step]);
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
+  };
+
+  const handleResendOtp = async () => {
+    setIsLoading(true);
+    try {
+      await userApi.registerSendOtp(formik.values.username, formik.values.email, formik.values.phoneNumber);
+      setCountdown(300);
+      Swal.fire({
+        icon: "success",
+        title: "Gửi lại thành công",
+        text: "Mã OTP mới đã được gửi.",
+      });
+    } catch (err: any) {
+      Swal.fire({
+        icon: "error",
+        title: "Lỗi",
+        text: err.response?.data?.message || "Không thể gửi lại OTP.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyAndRegister = async () => {
+    if (!otp || otp.length !== 6) {
+      setOtpError("Vui lòng nhập đủ 6 chữ số OTP");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      // 1. Xác thực OTP để lấy token
+      const response = await userApi.verifyOtp(formik.values.email, otp);
+      const token = response.data.resetToken;
+
+      // 2. Thực hiện đăng ký
+      let mappedRoleIds = [...formik.values.roleIds];
+      if (formik.values.accountType === "BAC_SI") {
+        const dentistRole = roles.find(
+          (r) => r.code?.toUpperCase() === "DENTIST",
+        );
+        if (dentistRole) {
+          mappedRoleIds = [Number(dentistRole.id), ...mappedRoleIds];
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Lỗi",
+            text: "Role DENTIST chưa tồn tại trong hệ thống. Vui lòng liên hệ admin.",
+          });
+          setIsLoading(false);
+          return;
+        }
+      } else if (formik.values.accountType === "TRUONG_HOC") {
+        const guestRole = roles.find(
+          (r) => r.code?.toUpperCase() === "GUEST",
+        );
+        if (guestRole) {
+          mappedRoleIds = [Number(guestRole.id), ...mappedRoleIds];
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Lỗi",
+            text: "Role GUEST chưa tồn tại trong hệ thống. Vui lòng liên hệ admin.",
+          });
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      const signupData: Omit<IUserInformation, "id" | "rePassword"> = {
+        username: formik.values.username,
+        password: formik.values.password,
+        firstName: formik.values.firstName,
+        lastName: formik.values.lastName,
+        email: formik.values.email,
+        phoneNumber: formik.values.phoneNumber,
+        birthDate: formik.values.birthDate,
+        organizationId: formik.values.organizationId,
+        roleIds: mappedRoleIds,
+      };
+
+      await userApi.create(signupData, token);
+
+      Swal.fire({
+        icon: "success",
+        title: "Đã gửi yêu cầu đăng ký thành công!",
+        text: "Vui lòng đợi admin xét duyệt tài khoản.",
+      });
+
+      navigate("/login");
+    } catch (err: any) {
+      let errorMsg = err?.response?.data?.detail || err?.response?.data?.message || "Xác thực hoặc đăng ký thất bại";
+      if (errorMsg === "Weak password") {
+        errorMsg = "Mật khẩu quá yếu! Mật khẩu phải có ít nhất 6 ký tự, bao gồm ít nhất 1 chữ cái in HOA, 1 chữ cái in thường và 1 chữ số.";
+      }
+      Swal.fire({
+        icon: "error",
+        title: "Thất bại",
+        text: errorMsg,
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -117,70 +251,19 @@ const Signup = () => {
     onSubmit: async (values) => {
       try {
         setIsLoading(true);
-
-        // Map account type to corresponding role
-        let mappedRoleIds = [...values.roleIds];
-        if (values.accountType === "BAC_SI") {
-          const dentistRole = roles.find(
-            (r) => r.code?.toUpperCase() === "DENTIST",
-          );
-          if (dentistRole) {
-            mappedRoleIds = [Number(dentistRole.id), ...mappedRoleIds];
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Lỗi",
-              text: "Role DENTIST chưa tồn tại trong hệ thống. Vui lòng liên hệ admin.",
-            });
-            setIsLoading(false);
-            return;
-          }
-        } else if (values.accountType === "TRUONG_HOC") {
-          const guestRole = roles.find(
-            (r) => r.code?.toUpperCase() === "GUEST",
-          );
-          if (guestRole) {
-            mappedRoleIds = [Number(guestRole.id), ...mappedRoleIds];
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Lỗi",
-              text: "Role GUEST chưa tồn tại trong hệ thống. Vui lòng liên hệ admin.",
-            });
-            setIsLoading(false);
-            return;
-          }
-        }
-
-        const signupData: Omit<IUserInformation, "id" | "rePassword"> = {
-          username: values.username,
-          password: values.password,
-          firstName: values.firstName,
-          lastName: values.lastName,
-          email: values.email,
-          phoneNumber: values.phoneNumber,
-          birthDate: values.birthDate,
-          organizationId: values.organizationId,
-          roleIds: mappedRoleIds,
-        };
-
-        await userApi.create(signupData);
-
+        await userApi.registerSendOtp(values.username, values.email, values.phoneNumber);
         Swal.fire({
           icon: "success",
-          title: "Đã gửi yêu cầu đăng ký thành công!",
-          text: "Vui lòng đợi admin xét duyệt tài khoản.",
+          title: "Đã gửi mã OTP",
+          text: "Vui lòng kiểm tra email của bạn để lấy mã OTP xác thực.",
+          timer: 2500,
         });
-
-        navigate("/login");
+        setStep(2);
       } catch (err: any) {
-        let errorMsg = err?.response?.data?.detail || err?.response?.data?.message || "Tài khoản hoặc email đã tồn tại";
-        if (errorMsg === "Weak password") {
-          errorMsg = "Mật khẩu quá yếu! Mật khẩu phải có ít nhất 6 ký tự, bao gồm ít nhất 1 chữ cái in HOA, 1 chữ cái in thường và 1 chữ số.";
-        }
+        let errorMsg = err?.response?.data?.detail || err?.response?.data?.message || "Tên đăng nhập, email hoặc số điện thoại đã tồn tại";
         Swal.fire({
           icon: "error",
-          title: "Đăng ký thất bại",
+          title: "Gửi mã OTP thất bại",
           text: errorMsg,
         });
       } finally {
@@ -218,206 +301,264 @@ const Signup = () => {
           </div>
 
           <div className="flex w-full max-w-[450px] flex-col gap-4">
-            {/* Username */}
-            <Input
-              placeholder="Tên đăng nhập"
-              inputClass="py-3 !text-base"
-              value={formik.values.username}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              name="username"
-              error={formik.touched.username && formik.errors.username}
-            />
+            {/* STEP 1: ĐIỀN THÔNG TIN ĐĂNG KÝ */}
+            {step === 1 && (
+              <>
+                {/* Username */}
+                <Input
+                  placeholder="Tên đăng nhập"
+                  inputClass="py-3 !text-base"
+                  value={formik.values.username}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  name="username"
+                  error={(formik.touched.username && formik.errors.username) || undefined}
+                />
 
-            {/* Email */}
-            <Input
-              placeholder="Email"
-              inputClass="py-3 !text-base"
-              type="email"
-              value={formik.values.email}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              name="email"
-              error={formik.touched.email && formik.errors.email}
-            />
+                {/* Email */}
+                <Input
+                  placeholder="Email"
+                  inputClass="py-3 !text-base"
+                  type="email"
+                  value={formik.values.email}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  name="email"
+                  error={(formik.touched.email && formik.errors.email) || undefined}
+                />
 
-            {/* First Name & Last Name */}
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                placeholder="Họ"
-                inputClass="py-3 !text-base"
-                value={formik.values.firstName}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                name="firstName"
-                error={formik.touched.firstName && formik.errors.firstName}
-              />
-
-              <Input
-                placeholder="Tên"
-                inputClass="py-3 !text-base"
-                value={formik.values.lastName}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                name="lastName"
-                error={formik.touched.lastName && formik.errors.lastName}
-              />
-            </div>
-
-            {/* Phone Number & Birth Date */}
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                placeholder="Số điện thoại"
-                inputClass="py-3 !text-base"
-                value={formik.values.phoneNumber}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                name="phoneNumber"
-                error={formik.touched.phoneNumber && formik.errors.phoneNumber}
-              />
-
-              <Input
-                placeholder="Ngày sinh"
-                inputClass="py-3 !text-base"
-                type="date"
-                value={formik.values.birthDate}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                name="birthDate"
-                error={formik.touched.birthDate && formik.errors.birthDate}
-              />
-            </div>
-
-            {/* Password */}
-            <Input
-              placeholder="Mật khẩu"
-              inputClass="py-3 !text-base"
-              type={showPass ? "text" : "password"}
-              addOnAfter={
-                !showPass ? (
-                  <EyeSlashIcon
-                    cursor="pointer"
-                    onClick={handleShowPassword}
-                    className="h-5 w-5"
+                {/* First Name & Last Name */}
+                <div className="grid grid-cols-2 gap-3">
+                  <Input
+                    placeholder="Họ"
+                    inputClass="py-3 !text-base"
+                    value={formik.values.firstName}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    name="firstName"
+                    error={(formik.touched.firstName && formik.errors.firstName) || undefined}
                   />
-                ) : (
-                  <EyeIcon
-                    cursor="pointer"
-                    onClick={handleHidePassword}
-                    className="h-5 w-5"
-                  />
-                )
-              }
-              value={formik.values.password}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              name="password"
-              error={formik.touched.password && formik.errors.password}
-            />
 
-            {/* Confirm Password */}
-            <Input
-              placeholder="Xác nhận mật khẩu"
-              inputClass="py-3 !text-base"
-              type={showConfirmPass ? "text" : "password"}
-              addOnAfter={
-                !showConfirmPass ? (
-                  <EyeSlashIcon
-                    cursor="pointer"
-                    onClick={handleShowConfirmPass}
-                    className="h-5 w-5"
+                  <Input
+                    placeholder="Tên"
+                    inputClass="py-3 !text-base"
+                    value={formik.values.lastName}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    name="lastName"
+                    error={(formik.touched.lastName && formik.errors.lastName) || undefined}
                   />
-                ) : (
-                  <EyeIcon
-                    cursor="pointer"
-                    onClick={handleHideConfirmPass}
-                    className="h-5 w-5"
-                  />
-                )
-              }
-              value={formik.values.rePassword}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              name="rePassword"
-              error={formik.touched.rePassword && formik.errors.rePassword}
-            />
+                </div>
 
-            {/* Account Type Selector */}
-            <div>
-              <label className="mb-1 block text-sm font-semibold leading-6 text-gray-900">
-                Loại tài khoản <span className="text-red-500">*</span>
-              </label>
-              <div className="flex gap-3">
-                {ACCOUNT_TYPE_OPTIONS.map((opt) => (
+                {/* Phone Number & Birth Date */}
+                <div className="grid grid-cols-2 gap-3">
+                  <Input
+                    placeholder="Số điện thoại"
+                    inputClass="py-3 !text-base"
+                    value={formik.values.phoneNumber}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    name="phoneNumber"
+                    error={(formik.touched.phoneNumber && formik.errors.phoneNumber) || undefined}
+                  />
+
+                  <Input
+                    placeholder="Ngày sinh"
+                    inputClass="py-3 !text-base"
+                    type="date"
+                    value={formik.values.birthDate}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    name="birthDate"
+                    error={(formik.touched.birthDate && formik.errors.birthDate) || undefined}
+                  />
+                </div>
+
+                {/* Password */}
+                <Input
+                  placeholder="Mật khẩu"
+                  inputClass="py-3 !text-base"
+                  type={showPass ? "text" : "password"}
+                  addOnAfter={
+                    !showPass ? (
+                      <EyeSlashIcon
+                        cursor="pointer"
+                        onClick={handleShowPassword}
+                        className="h-5 w-5"
+                      />
+                    ) : (
+                      <EyeIcon
+                        cursor="pointer"
+                        onClick={handleHidePassword}
+                        className="h-5 w-5"
+                      />
+                    )
+                  }
+                  value={formik.values.password}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  name="password"
+                  error={(formik.touched.password && formik.errors.password) || undefined}
+                />
+
+                {/* Confirm Password */}
+                <Input
+                  placeholder="Xác nhận mật khẩu"
+                  inputClass="py-3 !text-base"
+                  type={showConfirmPass ? "text" : "password"}
+                  addOnAfter={
+                    !showConfirmPass ? (
+                      <EyeSlashIcon
+                        cursor="pointer"
+                        onClick={handleShowConfirmPass}
+                        className="h-5 w-5"
+                      />
+                    ) : (
+                      <EyeIcon
+                        cursor="pointer"
+                        onClick={handleHideConfirmPass}
+                        className="h-5 w-5"
+                      />
+                    )
+                  }
+                  value={formik.values.rePassword}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  name="rePassword"
+                  error={(formik.touched.rePassword && formik.errors.rePassword) || undefined}
+                />
+
+                {/* Account Type Selector */}
+                <div>
+                  <label className="mb-1 block text-sm font-semibold leading-6 text-gray-900">
+                    Loại tài khoản <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex gap-3">
+                    {ACCOUNT_TYPE_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() =>
+                          formik.setFieldValue("accountType", opt.value)
+                        }
+                        className={`flex-1 rounded-lg border px-4 py-3 text-center text-sm font-medium transition-colors ${
+                          formik.values.accountType === opt.value
+                            ? "border-indigo-600 bg-indigo-600 text-white"
+                            : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  {formik.touched.accountType && formik.errors.accountType && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {formik.errors.accountType}
+                    </p>
+                  )}
+                </div>
+
+                {/* School Autocomplete - only enabled when "Trường học" is selected */}
+                <Autocomplete
+                  name="organizationId"
+                  label="Trường học"
+                  placeholder={
+                    !isSchoolSelected
+                      ? "Vui lòng chọn loại tài khoản \"Trường học\" trước"
+                      : orgsLoading
+                      ? "Đang tải danh sách trường học..."
+                      : orgsError
+                      ? "Lỗi tải dữ liệu, hãy thử lại sau"
+                      : "Nhập tên trường để tìm kiếm..."
+                  }
+                  options={organizations}
+                  value={
+                    formik.values.organizationId
+                      ? organizations.find(
+                          (org: any) => org.id === formik.values.organizationId,
+                        ) || null
+                      : null
+                  }
+                  onChange={(selected: any) => {
+                    formik.setFieldValue(
+                      "organizationId",
+                      selected ? selected.id : null,
+                    );
+                    formik.setFieldTouched("organizationId", true, false);
+                  }}
+                  getOptionLabel={(option: any) => option.name || ""}
+                  disabled={!isSchoolSelected || orgsLoading}
+                  required={isSchoolSelected}
+                  loading={orgsLoading}
+                  error={
+                    orgsError ||
+                    ((formik.touched.organizationId && formik.errors.organizationId) || undefined)
+                  }
+                />
+
+                {/* Submit Button */}
+                <Button
+                  isDisabled={!isEmpty(errors) || !dirty || isLoading}
+                  type="submit"
+                  className="mt-2 h-12 text-base"
+                >
+                  {isLoading ? "Đang xử lý..." : "Đăng ký"}
+                </Button>
+              </>
+            )}
+
+            {/* STEP 2: NHẬP OTP XÁC THỰC EMAIL */}
+            {step === 2 && (
+              <div className="flex flex-col gap-4">
+                <p className="text-sm text-gray-500 text-center mb-2">
+                  Mã OTP đã được gửi tới email <b className="text-indigo-600">{formik.values.email}</b>
+                </p>
+                <Input
+                  placeholder="Mã OTP 6 số"
+                  inputClass="py-4 text-center tracking-[10px] font-bold !text-2xl"
+                  value={otp}
+                  onChange={(e) => {
+                    setOtp(e.target.value);
+                    if (otpError) setOtpError("");
+                  }}
+                  name="otp"
+                  maxLength={6}
+                  error={otpError || undefined}
+                />
+                <div className="flex items-center justify-between text-sm px-1">
+                  <span className="text-gray-500">
+                    Mã OTP hết hạn sau: <b className="text-red-500">{formatTime(countdown)}</b>
+                  </span>
                   <button
-                    key={opt.value}
                     type="button"
-                    onClick={() =>
-                      formik.setFieldValue("accountType", opt.value)
-                    }
-                    className={`flex-1 rounded-lg border px-4 py-3 text-center text-sm font-medium transition-colors ${
-                      formik.values.accountType === opt.value
-                        ? "border-indigo-600 bg-indigo-600 text-white"
-                        : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                    disabled={countdown > 0 || isLoading}
+                    onClick={handleResendOtp}
+                    className={`font-semibold underline ${
+                      countdown > 0 ? "text-gray-400 cursor-not-allowed" : "text-indigo-600 hover:text-indigo-700"
                     }`}
                   >
-                    {opt.label}
+                    Gửi lại mã
                   </button>
-                ))}
+                </div>
+                <Button
+                  isDisabled={otp.length !== 6 || isLoading}
+                  type="button"
+                  onClick={handleVerifyAndRegister}
+                  className="h-12 text-base"
+                >
+                  {isLoading ? "Đang xác thực..." : "Xác thực & Đăng ký"}
+                </Button>
+                <div className="flex justify-center mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="text-base text-gray-500 hover:text-indigo-600 font-semibold underline"
+                  >
+                    Quay lại chỉnh sửa thông tin
+                  </button>
+                </div>
               </div>
-              {formik.touched.accountType && formik.errors.accountType && (
-                <p className="mt-1 text-sm text-red-600">
-                  {formik.errors.accountType}
-                </p>
-              )}
-            </div>
-
-            {/* School Autocomplete - only enabled when "Trường học" is selected */}
-            <Autocomplete
-              name="organizationId"
-              label="Trường học"
-              placeholder={
-                !isSchoolSelected
-                  ? "Vui lòng chọn loại tài khoản \"Trường học\" trước"
-                  : orgsLoading
-                  ? "Đang tải danh sách trường học..."
-                  : orgsError
-                  ? "Lỗi tải dữ liệu, hãy thử lại sau"
-                  : "Nhập tên trường để tìm kiếm..."
-              }
-              options={organizations}
-              value={
-                formik.values.organizationId
-                  ? organizations.find(
-                      (org: any) => org.id === formik.values.organizationId,
-                    ) || null
-                  : null
-              }
-              onChange={(selected: any) => {
-                formik.setFieldValue(
-                  "organizationId",
-                  selected ? selected.id : null,
-                );
-                formik.setFieldTouched("organizationId", true, false);
-              }}
-              getOptionLabel={(option: any) => option.name || ""}
-              disabled={!isSchoolSelected || orgsLoading}
-              required={isSchoolSelected}
-              loading={orgsLoading}
-              error={
-                orgsError ||
-                (formik.touched.organizationId && formik.errors.organizationId)
-              }
-            />
-
-            {/* Submit Button */}
-            <Button
-              isDisabled={!isEmpty(errors) || !dirty || isLoading}
-              type="submit"
-              className="mt-2 h-12 text-base"
-            >
-              {isLoading ? "Đang đăng ký..." : "Đăng ký"}
-            </Button>
+            )}
 
             {/* Back to Login */}
             <div className="mt-2 flex items-center justify-center gap-2">

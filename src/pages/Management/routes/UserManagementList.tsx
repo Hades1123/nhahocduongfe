@@ -18,7 +18,7 @@ import { getLocalUserInfo } from "@/utils/storage";
 import { userApi } from "@/api/userApi";
 
 const statusOptions = [
-  { value: null, label: "None" },
+  { value: null, label: "Trạng thái (tất cả)" },
   { value: "active", label: "Hoạt động" },
   { value: "locked", label: "Đã khóa" },
 ];
@@ -166,8 +166,8 @@ const UserManagementList = () => {
           aria-current="page"
           className={
             curPage === i + 1
-              ? "relative z-10 inline-flex items-center bg-indigo-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              : "relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+              ? "relative z-10 inline-flex items-center bg-indigo-600 dark:bg-indigo-500 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              : "relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 dark:text-slate-200 ring-1 ring-inset ring-gray-300 dark:ring-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 focus:z-20 focus:outline-offset-0"
           }
         >
           {i + 1}
@@ -274,11 +274,10 @@ const UserManagementList = () => {
       <div className="flex flex-col gap-8 sm:px-6">
         {!organizationType ? (
           <>
-            <div className="flex items-end justify-between">
-              <div className="flex gap-3">
-                <Button onClick={handleSearch}>Tìm kiếm</Button>
+            <div className="flex flex-col gap-2 p-4 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+              <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-4">
                 <Input
-                  className="min-w-[450px]"
+                  className="w-full md:min-w-[450px] lg:max-w-[300px]"
                   placeholder="Nhập tài khoản, họ tên, email, SĐT"
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
@@ -287,14 +286,15 @@ const UserManagementList = () => {
                   }}
                 />
                 <Select
-                  className="min-w-[180px]"
+                  className="w-full md:min-w-[180px] lg:max-w-[200px]"
                   options={statusOptions}
                   value={statusFilter}
                   onChange={handleStatusChange}
                 />
+                <Button onClick={handleSearch} className="w-full lg:w-auto">Tìm kiếm</Button>
               </div>
-              <div className="flex justify-end">
-                <Button onClick={handleCreate}>Tạo mới người dùng</Button>
+              <div className="flex mt-2 lg:mt-0 lg:justify-end">
+                <Button onClick={handleCreate} className="w-full lg:w-auto">Tạo mới người dùng</Button>
               </div>
             </div>
           </>
@@ -309,13 +309,13 @@ const UserManagementList = () => {
 
         {/* Pagination */}
         {!organizationType && totalPage > 1 && (
-          <div className="flex cursor-pointer items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+          <div className="flex cursor-pointer items-center justify-between border-t border-gray-200 bg-transparent px-4 py-3 sm:px-6">
             <div className="flex flex-1 justify-between sm:hidden">
               <a
                 onClick={() =>
                   curPage === 1 ? {} : setCurPage((old) => old - 1)
                 }
-                className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="relative inline-flex items-center rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700"
               >
                 Previous
               </a>
@@ -323,7 +323,7 @@ const UserManagementList = () => {
                 onClick={() =>
                   curPage === totalPage ? {} : setCurPage((old) => old + 1)
                 }
-                className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700"
               >
                 Next
               </a>
@@ -338,7 +338,7 @@ const UserManagementList = () => {
                     onClick={() =>
                       curPage === 1 ? {} : setCurPage((old) => old - 1)
                     }
-                    className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                    className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 dark:text-slate-500 ring-1 ring-inset ring-gray-300 dark:ring-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 focus:z-20 focus:outline-offset-0"
                   >
                     <span className="sr-only">Previous</span>
                     <svg
@@ -359,7 +359,7 @@ const UserManagementList = () => {
                     onClick={() =>
                       curPage === totalPage ? {} : setCurPage((old) => old + 1)
                     }
-                    className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                    className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 dark:text-slate-500 ring-1 ring-inset ring-gray-300 dark:ring-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 focus:z-20 focus:outline-offset-0"
                   >
                     <span className="sr-only">Next</span>
                     <svg
