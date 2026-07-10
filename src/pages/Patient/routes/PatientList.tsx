@@ -10,7 +10,7 @@ import { TableColumn } from "@/components/Table/type";
 import { getLocalUserInfo } from "@/utils/storage";
 import { PencilSquareIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Tooltip } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { DateRangePicker, DatePicker } from "rsuite";
@@ -102,6 +102,7 @@ const PatientList = (props: Props) => {
   const userInfor = getLocalUserInfo();
   const organizationType = userInfor?.organization?.type;
   const [tableLoading, setTableLoading] = useState<boolean>(false);
+  const isFirstSearchRender = useRef(true);
 
   function flattenObject(obj: any) {
     const flattenedArray = [];
@@ -320,9 +321,8 @@ const PatientList = (props: Props) => {
     return queryParams;
   };
 
-  const handleSearch = (e: any) => {
+  const handleSearch = (e?: any) => {
     const queryParams = filterParam();
-    console.log("quert:", queryParams);
     api
       .get(`/api/patient/search?sort=id,desc`, { params: queryParams })
       .then((res) => {
@@ -336,6 +336,17 @@ const PatientList = (props: Props) => {
         throw err;
       });
   };
+
+  useEffect(() => {
+    if (isFirstSearchRender.current) {
+      isFirstSearchRender.current = false;
+      return;
+    }
+    const timer = setTimeout(() => {
+      handleSearch();
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchText]);
 
   const handleDelete = (id: number, name: string) => {
     Swal.fire({
@@ -580,9 +591,9 @@ const PatientList = (props: Props) => {
         <div className="flex flex-col gap-3 sm:flex-row">
           <Input
             placeholder="Nhập họ tên hoặc mã BHYT"
+            value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
           />
-          <Button variants="outlined" onClick={handleSearch}>Tìm kiếm</Button>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
           <Button variants="outlined" onClick={handleExport}>Export</Button>

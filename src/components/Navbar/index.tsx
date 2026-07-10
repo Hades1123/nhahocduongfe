@@ -48,59 +48,48 @@ function NavDropdown({
   const isActive = visibleChildren.some((item) => pathname === item.slug);
 
   return (
-    <Menu as="div" className="relative">
-      {({ open }) => (
-        <>
-          <Menu.Button
-            className={twMerge(
-              "inline-flex items-center gap-1 border-b-2 border-transparent px-2 pt-1 text-sm",
-              "font-medium text-white hover:border-gray-300 hover:text-gray-50",
-              "transition-colors duration-150 focus:outline-none",
-              isActive && "border-white font-semibold",
-            )}
-          >
-            {group.label}
-            <ChevronDownIcon
-              className={twMerge(
-                "h-4 w-4 transition-transform duration-200",
-                open && "rotate-180",
-              )}
-            />
-          </Menu.Button>
+    <div className="group relative">
+      <button
+        className={twMerge(
+          "inline-flex items-center gap-1 border-b-2 border-transparent px-2 pt-1 text-sm",
+          "font-medium text-white hover:border-gray-300 hover:text-gray-50",
+          "focus:outline-none transition-colors duration-150",
+          isActive && "border-white font-semibold",
+        )}
+      >
+        {group.label}
+        <ChevronDownIcon
+          className={twMerge(
+            "h-4 w-4 transition-transform duration-200 group-hover:rotate-180",
+          )}
+        />
+      </button>
 
-          <Transition
-            as={Fragment}
-            enter="transition ease-out duration-200"
-            enterFrom="transform opacity-0 scale-95"
-            enterTo="transform opacity-100 scale-100"
-            leave="transition ease-in duration-75"
-            leaveFrom="transform opacity-100 scale-100"
-            leaveTo="transform opacity-0 scale-95"
-          >
-            <Menu.Items className="absolute left-0 z-50 mt-2 w-52 origin-top-left rounded-md bg-white dark:bg-slate-800 py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-              {visibleChildren.map((item) => (
-                <Menu.Item key={item.id}>
-                  {({ active }) => (
-                    <Link
-                      to={item.slug}
-                      className={classNames(
-                        active ? "bg-indigo-100 !text-indigo-600 dark:bg-slate-700/50" : "",
-                        pathname === item.slug
-                          ? "bg-indigo-100 font-semibold text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300"
-                          : "text-gray-700 dark:text-slate-200",
-                        "block px-4 py-2 text-sm",
-                      )}
-                    >
-                      {item.title}
-                    </Link>
-                  )}
-                </Menu.Item>
-              ))}
-            </Menu.Items>
-          </Transition>
-        </>
-      )}
-    </Menu>
+      {/* Invisible bridge to prevent hover loss between button and menu */}
+      <div className="absolute left-0 top-full h-4 w-full bg-transparent"></div>
+
+      <div className="absolute left-0 top-full z-50 mt-1 hidden w-56 origin-top-left flex-col overflow-hidden rounded-xl bg-white shadow-xl ring-1 ring-black/5 transition-all duration-200 group-hover:flex">
+        <div className="py-2">
+          {visibleChildren.map((item) => {
+            const isChildActive = pathname === item.slug;
+            return (
+              <Link
+                key={item.id}
+                to={item.slug}
+                className={classNames(
+                  isChildActive
+                    ? "bg-gray-50 font-semibold !text-gray-900"
+                    : "font-medium !text-gray-600 hover:bg-gray-50 hover:!text-gray-900",
+                  "block px-4 py-2.5 text-sm transition-colors duration-150",
+                )}
+              >
+                {item.title}
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }
 
