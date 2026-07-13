@@ -215,29 +215,34 @@ const PatientList = (props: Props) => {
   };
 
   function formatList(list: any) {
-    return list
-      .map((item: any) => {
-        let result = item.name;
-        const listRemove = [
-          "Tỉnh ",
-          "Thành phố ",
-          "Thị xã ",
-          "Quận ",
-          "Huyện ",
-          "Phường ",
-          "Xã ",
-        ];
-        listRemove.map((element) => {
-          result = result.replace(element, "");
-        });
+    const uniqueMap = new Map();
+    list.forEach((item: any) => {
+      let result = item.name;
+      const listRemove = [
+        "Tỉnh ",
+        "Thành phố ",
+        "Thị xã ",
+        "Quận ",
+        "Huyện ",
+        "Phường ",
+        "Xã ",
+      ];
+      listRemove.forEach((element) => {
+        result = result.replace(element, "");
+      });
 
-        return {
+      if (!uniqueMap.has(result)) {
+        uniqueMap.set(result, {
           value: result,
           label: result,
           item: item,
-        };
-      })
-      .sort((a: any, b: any) => a.label.localeCompare(b.label));
+        });
+      }
+    });
+
+    return Array.from(uniqueMap.values()).sort((a: any, b: any) =>
+      a.label.localeCompare(b.label),
+    );
   }
 
   const loadProvinces = () => {
@@ -291,9 +296,13 @@ const PatientList = (props: Props) => {
   }, [organizations]);
 
   useEffect(() => {
-    if (school && school.value) {
+    if (school && school.value && school.value.classes) {
       setClasses("");
-      let formatClass = school.value.classes?.["1"].map((schoolClass: any) => {
+      const tempClasses = [];
+      for (const [key, value] of Object.entries(school.value.classes)) {
+        tempClasses.push(...(value as string[]));
+      }
+      let formatClass = tempClasses?.map((schoolClass: any) => {
         return {
           value: schoolClass,
           label: schoolClass,
@@ -301,7 +310,8 @@ const PatientList = (props: Props) => {
       });
       formatClass = formatClass || [];
       setClassOptions([{ value: "", label: "Tất cả" }, ...formatClass]);
-    } else setClassOptions([]);
+      handleSearch({ classes: "" });
+    } else setClassOptions(undefined);
   }, [school]);
 
   if (organizationType) {
@@ -322,30 +332,40 @@ const PatientList = (props: Props) => {
     }, [organizationType]);
   }
 
-  const filterParam = () => {
+  const filterParam = (overrides?: { searchText?: string; school?: any; classes?: any; province?: any }) => {
     const queryParams = new URLSearchParams();
-    if (searchText) {
-      queryParams.append("searchText", searchText);
+    
+    // Resolve current values, favoring overrides if provided
+    const currentSearchText = overrides && 'searchText' in overrides ? overrides.searchText : searchText;
+    const currentSchool = overrides && 'school' in overrides ? overrides.school : school;
+    const currentClasses = overrides && 'classes' in overrides ? overrides.classes : classes;
+    const currentProvince = overrides && 'province' in overrides ? overrides.province : province;
+
+    if (currentSearchText) {
+      queryParams.append("searchText", currentSearchText);
     }
-    if (school) {
+    if (currentSchool) {
       queryParams.append(
         "organizationName",
-        school?.label !== "Tất cả" ? school?.label : "",
+        currentSchool?.label !== "Tất cả" ? currentSchool?.label : "",
       );
     }
-    if (classes) {
-      queryParams.append("schoolClass", classes ? classes.value : "");
+    if (currentClasses) {
+      const classValue = typeof currentClasses === "object" ? currentClasses.value : currentClasses;
+      queryParams.append("schoolClass", classValue || "");
     }
     // Append areaCode only when a real province with a code is selected
-    if (province && province?.item?.code) {
-      queryParams.append("areaCode", province.item.code);
+    if (currentProvince && currentProvince?.item?.code) {
+      queryParams.append("areaCode", currentProvince.item.code);
     }
 
     return queryParams;
   };
 
-  const handleSearch = (e?: any) => {
-    const queryParams = filterParam();
+  const handleSearch = (overrides?: { searchText?: string; school?: any; classes?: any; province?: any }) => {
+    setTableLoading(true);
+    const queryParams = filterParam(overrides);
+    console.log(queryParams.toString())
     api
       .get(`/api/patient/search?sort=id,desc`, { params: queryParams })
       .then((res) => {
@@ -357,7 +377,8 @@ const PatientList = (props: Props) => {
       })
       .catch((err) => {
         throw err;
-      });
+      })  
+      .finally(() => setTableLoading(false));
   };
 
   useEffect(() => {
@@ -507,6 +528,8 @@ const PatientList = (props: Props) => {
       ]);
       setProvince(null);
       setSchool(null);
+      setClasses("");
+      handleSearch({ province: null, school: null, classes: "" });
       return;
     }
 
@@ -520,6 +543,8 @@ const PatientList = (props: Props) => {
     setSchoolOptions([{ value: "", label: "Tất cả" }, ...formatSchool]);
     setProvince(province);
     setSchool(null);
+    setClasses("");
+    handleSearch({ province: province, school: null, classes: "" });
   };
 
   return (
@@ -545,7 +570,11 @@ const PatientList = (props: Props) => {
               options={schoolOptions}
               value={school}
               search={true}
-              onChange={(v) => setSchool(v)}
+              onChange={(v) => {
+                setSchool(v);
+                setClasses("");
+                handleSearch({ school: v, classes: "" });
+              }}
               loading={schoolsLoading}
             />
           </div>
@@ -554,7 +583,10 @@ const PatientList = (props: Props) => {
             placeholder="Chọn lớp"
             value={classes}
             options={classOptions}
-            onChange={(v) => setClasses(v)}
+            onChange={(v) => {
+              setClasses(v);
+              handleSearch({ classes: v });
+            }}
           />
         </div>
       ) : (
@@ -564,7 +596,10 @@ const PatientList = (props: Props) => {
             placeholder="Chọn lớp"
             value={classes}
             options={classOptions}
-            onChange={(v) => setClasses(v)}
+            onChange={(v) => {
+              setClasses(v);
+              handleSearch({ classes: v });
+            }}
           />
         </div>
       )}
