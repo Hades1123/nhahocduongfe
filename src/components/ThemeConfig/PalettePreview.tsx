@@ -33,8 +33,14 @@ const PalettePreview: React.FC<PalettePreviewProps> = ({
   gap = 4,
   className = "",
 }) => {
-  // Semantic labels for accessibility (screen readers, tooltips)
-  const roles = ["Chính", "Phụ", "Nổi bật", "Nền"];
+  // Semantic labels with application mapping for accessibility (screen readers, tooltips)
+  const roles = [
+    "Chính (Thanh điều hướng, nút bấm)",
+    "Phụ (Hover, viền)",
+    "Nổi bật (Huy hiệu, nhãn)",
+    "Nền (Thẻ, bảng)",
+  ];
+  const shortRoles = ["Chính", "Phụ", "Nổi bật", "Nền"];
 
   return (
     <div

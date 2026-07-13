@@ -26,7 +26,7 @@ import {
 } from "@heroicons/react/24/outline";
 import useThemeStore from "@/stores/themeStore";
 import { extractColorsFromUrl, extractColorsFromImage } from "@/utils/colorExtractor";
-import { PaletteSwatches } from "./PalettePreview";
+import DraggablePalette from "./DraggablePalette";
 import { v4 as uuidv4 } from "uuid";
 import { Palette } from "@/types/theme";
 
@@ -57,6 +57,7 @@ const PaletteImport: React.FC = () => {
   // ── Shared extracted-color state ──
   const [extractedColors, setExtractedColors] = useState<string[] | null>(null);
   const [paletteName, setPaletteName] = useState("");
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   /** Clear the extracted preview and reset the import form */
   const reset = () => {
@@ -154,8 +155,13 @@ const PaletteImport: React.FC = () => {
     // Immediately apply the new palette
     setActivePalette(id);
 
-    // Clear the import form
-    reset();
+    // Show success animation
+    setSaveSuccess(true);
+    setTimeout(() => {
+      setSaveSuccess(false);
+      // Clear the import form
+      reset();
+    }, 1200);
   };
 
   // ─── Render ──────────────────────────────────────────────────────────────────
@@ -174,6 +180,9 @@ const PaletteImport: React.FC = () => {
             key={tab}
             type="button"
             onClick={() => {
+              if (extractedColors) {
+                if (!window.confirm("Bạn sẽ mất màu đã trích xuất. Tiếp tục?")) return;
+              }
               setActiveTab(tab);
               reset();
             }}
@@ -324,20 +333,17 @@ const PaletteImport: React.FC = () => {
 
           {/* Large swatches preview */}
           <div className="mt-2 mb-3">
-            <PaletteSwatches colors={extractedColors} size={40} />
+            <DraggablePalette
+              colors={extractedColors}
+              onChange={(colors) => setExtractedColors(colors)}
+              size={44}
+            />
+            <p className="mt-1.5 text-[11px] text-gray-400 dark:text-gray-500">
+              Kéo thả để sắp xếp lại thứ tự màu
+            </p>
           </div>
 
-          {/* Hex values */}
-          <div className="mb-3 flex gap-1 flex-wrap">
-            {extractedColors.map((c, i) => (
-              <code
-                key={i}
-                className="rounded bg-white px-1.5 py-0.5 text-[11px] text-gray-700 shadow-sm dark:bg-gray-700 dark:text-gray-300"
-              >
-                {c}
-              </code>
-            ))}
-          </div>
+
 
           {/* Name input */}
           <input
@@ -349,14 +355,28 @@ const PaletteImport: React.FC = () => {
             className="mb-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-[var(--theme-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--theme-primary)] dark:border-gray-600 dark:bg-gray-800 dark:text-white"
           />
 
-          {/* Save button */}
+          {/* Save button — with success animation */}
           <button
             type="button"
             onClick={handleSave}
-            className="w-full rounded-lg py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "var(--theme-primary)" }}
+            disabled={saveSuccess}
+            className={`w-full rounded-lg py-2 text-sm font-semibold text-white transition-all duration-300 ${
+              saveSuccess
+                ? "!bg-green-500 scale-[1.02]"
+                : "hover:opacity-90"
+            }`}
+            style={saveSuccess ? {} : { backgroundColor: "var(--theme-primary)" }}
           >
-            Thêm bảng màu
+            {saveSuccess ? (
+              <span className="flex items-center justify-center gap-1.5">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+                Đã thêm!
+              </span>
+            ) : (
+              "Thêm bảng màu"
+            )}
           </button>
         </div>
       )}

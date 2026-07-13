@@ -73,6 +73,8 @@ interface ThemeStoreState extends ThemeConfig {
   addPalette: (palette: Omit<Palette, "isBuiltin" | "createdAt">) => void;
   /** Remove a custom palette by ID (built-ins are silently rejected) */
   deletePalette: (id: string) => void;
+  /** Update the color array of an existing palette by ID */
+  updatePaletteColors: (id: string, colors: [string, string, string, string]) => void;
   /** Return the full Palette object for the currently active ID */
   getActivePalette: () => Palette;
   /**
@@ -169,6 +171,22 @@ const useThemeStore = create<ThemeStoreState>()(
               : state.activePaletteId;
           return { palettes: remaining, activePaletteId: newActiveId };
         });
+      },
+
+      /**
+       * Update the color array of an existing palette by ID.
+       */
+      updatePaletteColors: (id: string, colors: [string, string, string, string]) => {
+        const palette = get().palettes.find((p) => p.id === id);
+        if (!palette || palette.isBuiltin) {
+          console.warn(`[ThemeStore] Cannot modify palette "${id}".`);
+          return;
+        }
+        set((state) => ({
+          palettes: state.palettes.map((p) =>
+            p.id === id ? { ...p, colors } : p
+          ),
+        }));
       },
 
       /**

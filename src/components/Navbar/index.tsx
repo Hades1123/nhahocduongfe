@@ -443,12 +443,12 @@ export default function Navbar() {
                   {/* Sits between the bell and the profile menu */}
                   <button
                     type="button"
-                    onClick={() => setIsThemeOpen(true)}
-                    className="rounded-full bg-white dark:bg-slate-800 p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    onClick={() => setIsThemeOpen(!isThemeOpen)}
+                    className={`rounded-full bg-white dark:bg-slate-800 p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors ${isThemeOpen ? "!text-indigo-600 dark:!text-indigo-400" : ""}`}
                     title="Cài đặt giao diện"
                     aria-label="Mở cài đặt giao diện"
                   >
-                    <Cog6ToothIcon className="h-6 w-6" aria-hidden="true" />
+                    <Cog6ToothIcon className={`h-6 w-6 transition-transform duration-500 ${isThemeOpen ? "rotate-90" : ""}`} aria-hidden="true" />
                   </button>
 
                   {/* Profile dropdown */}

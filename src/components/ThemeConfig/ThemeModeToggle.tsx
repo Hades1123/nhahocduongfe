@@ -74,12 +74,23 @@ const ThemeModeToggle: React.FC = () => {
         </button>
       </div>
 
-      {/* Descriptive text */}
-      <p className="text-xs text-gray-500 dark:text-gray-400">
-        {isDark
-          ? "Chế độ tối — nền tối với màu sắc từ bảng màu đã chọn"
-          : "Chế độ sáng — nền trắng với màu sắc từ bảng màu đã chọn"}
-      </p>
+      {/* Descriptive text / dark mode disabled explanation */}
+      {isDarkModeDisabled ? (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-700 dark:bg-amber-900/20">
+          <svg className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+          </svg>
+          <p className="text-[11px] leading-relaxed text-amber-700 dark:text-amber-300">
+            Chế độ tối chỉ hỗ trợ với bảng màu <strong>Mặc định (Indigo)</strong>. Chọn lại bảng màu Indigo để bật chế độ tối.
+          </p>
+        </div>
+      ) : (
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          {isDark
+            ? "Chế độ tối — nền tối với màu sắc từ bảng màu đã chọn"
+            : "Chế độ sáng — nền trắng với màu sắc từ bảng màu đã chọn"}
+        </p>
+      )}
     </div>
   );
 };
