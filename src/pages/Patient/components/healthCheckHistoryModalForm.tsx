@@ -90,6 +90,8 @@ const HealthCheckModal = (props: Props) => {
   // ── Sections 4, 5, 6 state ──
   const [examDetail, setExamDetail] = useState<any>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [reExamDate, setReExamDate] = useState<string>("");
+  const [reExamNote, setReExamNote] = useState<string>("");
 
   const { data: patient } = useQuery(
     `/api/patient/${id}`,
@@ -193,9 +195,13 @@ const HealthCheckModal = (props: Props) => {
     try {
       const res = await api.get(`/api/patients/${id}/exams/${record.id}`);
       setExamDetail(res.data);
+      setReExamDate(res.data.reExamDate || "");
+      setReExamNote(res.data.reExamNote || "");
     } catch (err) {
       console.error("Lỗi khi tải chi tiết phiếu khám:", err);
       setExamDetail(null);
+      setReExamDate("");
+      setReExamNote("");
     } finally {
       setDetailLoading(false);
     }
@@ -249,6 +255,8 @@ const HealthCheckModal = (props: Props) => {
             date: formatDate(new Date()),
             year: new Date().getFullYear(),
             useVecniFlour: checked,
+            reExamDate: reExamDate || null,
+            reExamNote: reExamNote || null,
           };
           await updateExamMutation.mutateAsync(payload);
 
@@ -523,6 +531,37 @@ const HealthCheckModal = (props: Props) => {
                     }
                     onDeleted={() => handleImageDeleted("lower")}
                   />
+                </div>
+
+                {/* ── Section 7: Lịch tái khám ── */}
+                <Divider />
+                <h1 className="text-lg font-bold dark:text-slate-100">
+                  7. Lịch tái khám
+                </h1>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-gray-700 dark:text-slate-300">
+                      Ngày tái khám
+                    </label>
+                    <input
+                      type="date"
+                      value={reExamDate}
+                      onChange={(e) => setReExamDate(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-gray-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-gray-700 dark:text-slate-300">
+                      Ghi chú tái khám
+                    </label>
+                    <input
+                      type="text"
+                      value={reExamNote}
+                      onChange={(e) => setReExamNote(e.target.value)}
+                      placeholder="Nhập ghi chú tái khám..."
+                      className="w-full rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-gray-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    />
+                  </div>
                 </div>
               </div>
             )}
