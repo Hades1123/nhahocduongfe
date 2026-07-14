@@ -23,6 +23,7 @@ import {
   ExamTracking,
   ReExamList,
 } from "@/pages/ExamCampaign/routes";
+import AcademicYearList from "@/pages/AcademicYear/AcademicYearList";
 
 const ProtectedRoutes = (): React.ReactElement<
   any,
@@ -150,6 +151,10 @@ const ProtectedRoutes = (): React.ReactElement<
               element: <LoginLogsList />,
             },
           ],
+        },
+        {
+          path: slugs.academicYears,
+          element: <AcademicYearList />,
         },
         {
           path: "*",

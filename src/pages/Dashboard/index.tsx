@@ -11,20 +11,21 @@ const Dashboard = (props: Props) => {
   const [loading, setLoading] = useState(true);
   const [schoolSearch, setSchoolSearch] = useState("");
   const [reExamSearch, setReExamSearch] = useState("");
+  const [studentCounts, setStudentCounts] = useState<any[]>([]);
+  const [studentCountHistory, setStudentCountHistory] = useState<any[]>([]);
 
   useEffect(() => {
     setLoading(true);
-    // Fetch stats and re-exams in parallel
+    // Fetch stats, re-exams, and student counts in parallel
     Promise.all([
       api.get("/api/dashboard/stats").then((res) => res.data),
-      api
-        .get("/api/exams/re-exams")
-        .then((res) => res.data)
-        .catch(() => []),
+      api.get("/api/exams/re-exams").then((res) => res.data).catch(() => []),
+      api.get("/api/dashboard/student-count-history").then(res => res.data).catch(() => []),
     ])
-      .then(([statsData, reExamsData]) => {
+      .then(([statsData, reExamsData, historyData]) => {
         setStats(statsData);
         setReExams(reExamsData);
+        setStudentCountHistory(historyData || []);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -161,6 +162,42 @@ const Dashboard = (props: Props) => {
           </div>
         </div>
       </div>
+
+      {/* Student Count by Year */}
+      {studentCountHistory.length > 0 && (
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-gray-900">
+            📊 Biến động sĩ số qua các năm học
+          </h2>
+          <div className="flex h-[200px] items-end justify-around border-b border-gray-200 px-4 pb-6 pt-4">
+            {(() => {
+              const maxCount = Math.max(...studentCountHistory.map((y: any) => y.studentCount), 1);
+              return studentCountHistory.map((y: any, idx: number) => {
+                const heightPercent = `${(y.studentCount / maxCount) * 100}%`;
+                return (
+                  <div key={idx} className="group relative flex w-24 flex-col items-center">
+                    <div className="absolute bottom-full z-10 mb-2 whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                      {y.studentCount} học sinh
+                    </div>
+                    <div className="flex h-32 w-12 items-end overflow-hidden rounded-t-lg bg-gray-100">
+                      <div
+                        className="w-full bg-indigo-500 transition-all duration-500 hover:bg-indigo-600"
+                        style={{ height: heightPercent }}
+                      ></div>
+                    </div>
+                    <div className="mt-2 text-sm font-semibold text-indigo-600">
+                      {y.studentCount}
+                    </div>
+                    <div className="mt-1 text-xs font-medium text-gray-500">
+                      {y.yearName}
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </div>
+      )}
 
       {/* Main Charts & Analytics Row */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
