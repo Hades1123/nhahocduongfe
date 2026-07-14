@@ -332,14 +332,25 @@ const PatientList = (props: Props) => {
     }, [organizationType]);
   }
 
-  const filterParam = (overrides?: { searchText?: string; school?: any; classes?: any; province?: any }) => {
+  const filterParam = (overrides?: {
+    searchText?: string;
+    school?: any;
+    classes?: any;
+    province?: any;
+  }) => {
     const queryParams = new URLSearchParams();
-    
+
     // Resolve current values, favoring overrides if provided
-    const currentSearchText = overrides && 'searchText' in overrides ? overrides.searchText : searchText;
-    const currentSchool = overrides && 'school' in overrides ? overrides.school : school;
-    const currentClasses = overrides && 'classes' in overrides ? overrides.classes : classes;
-    const currentProvince = overrides && 'province' in overrides ? overrides.province : province;
+    const currentSearchText =
+      overrides && "searchText" in overrides
+        ? overrides.searchText
+        : searchText;
+    const currentSchool =
+      overrides && "school" in overrides ? overrides.school : school;
+    const currentClasses =
+      overrides && "classes" in overrides ? overrides.classes : classes;
+    const currentProvince =
+      overrides && "province" in overrides ? overrides.province : province;
 
     if (currentSearchText) {
       queryParams.append("searchText", currentSearchText);
@@ -351,7 +362,10 @@ const PatientList = (props: Props) => {
       );
     }
     if (currentClasses) {
-      const classValue = typeof currentClasses === "object" ? currentClasses.value : currentClasses;
+      const classValue =
+        typeof currentClasses === "object"
+          ? currentClasses.value
+          : currentClasses;
       queryParams.append("schoolClass", classValue || "");
     }
     // Append areaCode only when a real province with a code is selected
@@ -362,10 +376,15 @@ const PatientList = (props: Props) => {
     return queryParams;
   };
 
-  const handleSearch = (overrides?: { searchText?: string; school?: any; classes?: any; province?: any }) => {
+  const handleSearch = (overrides?: {
+    searchText?: string;
+    school?: any;
+    classes?: any;
+    province?: any;
+  }) => {
     setTableLoading(true);
     const queryParams = filterParam(overrides);
-    console.log(queryParams.toString())
+    console.log(queryParams.toString());
     api
       .get(`/api/patient/search?sort=id,desc`, { params: queryParams })
       .then((res) => {
@@ -377,7 +396,7 @@ const PatientList = (props: Props) => {
       })
       .catch((err) => {
         throw err;
-      })  
+      })
       .finally(() => setTableLoading(false));
   };
 
