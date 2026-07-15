@@ -16,11 +16,9 @@ import { twMerge } from "tailwind-merge";
 import Modal from "@/components/Modal";
 import ChangePasswordForm from "@/pages/Login/ChangePassWord";
 import jwt_decode from "jwt-decode";
-import {
-  notificationApi,
-  NotificationItem,
-} from "@/api/notificationApi";
+import { notificationApi, NotificationItem } from "@/api/notificationApi";
 import ThemeConfig from "@/components/ThemeConfig";
+import { useNotificationSSE } from "@/hooks/useNotificationSSE";
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
@@ -53,7 +51,7 @@ function NavDropdown({
         className={twMerge(
           "inline-flex items-center gap-1 border-b-2 border-transparent px-2 pt-1 text-sm",
           "font-medium text-white hover:border-gray-300 hover:text-gray-50",
-          "focus:outline-none transition-colors duration-150",
+          "transition-colors duration-150 focus:outline-none",
           isActive && "border-white font-semibold",
         )}
       >
@@ -197,7 +195,7 @@ export default function Navbar() {
       const count = await notificationApi.getUnreadCount();
       setUnreadCount(count);
     } catch (e) {
-      // silent fail - bell icon just shows no badge
+      console.error("Cannot fetch unread count", e);
     }
   }, [isGuest]);
 
@@ -208,7 +206,7 @@ export default function Navbar() {
       const data = await notificationApi.getMyNotifications();
       setNotifications(data);
     } catch (e) {
-      // silent fail
+      console.error("Cannot fetch notifications ", e);
     } finally {
       setLoadingNotifications(false);
     }
@@ -222,7 +220,7 @@ export default function Navbar() {
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (e) {
-      // silent fail
+      console.error("Cannot mark as read notification ", e);
     }
   };
 
@@ -232,18 +230,22 @@ export default function Navbar() {
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (e) {
-      // silent fail
+      console.error("Cannot mark all as read notifications ", e);
     }
   };
 
-  // Poll unread count every 30s
+  // SSE: real-time unread count
+  useNotificationSSE({
+    onNotification: () => {
+      setUnreadCount((prev) => prev + 1);
+    },
+    enabled: !isGuest,
+  });
+
+  // Fetch initial unread count on mount
   useEffect(() => {
     fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000);
-    return () => clearInterval(interval);
-  }, [fetchUnreadCount]);
-
-
+  }, []);
 
   return (
     <>
@@ -264,7 +266,10 @@ export default function Navbar() {
       <ThemeConfig isOpen={isThemeOpen} onClose={() => setIsThemeOpen(false)} />
       {/* theme-navbar-bg: hook class for custom palette navbar background.
            Default: bg-indigo-600 wins. Custom theme active: var(--theme-primary). */}
-      <Disclosure as="nav" className="sticky top-0 z-50 bg-indigo-600 dark:bg-slate-900 shadow theme-navbar-bg">
+      <Disclosure
+        as="nav"
+        className="theme-navbar-bg sticky top-0 z-50 bg-indigo-600 shadow dark:bg-slate-900"
+      >
         {({ open, close }) => (
           <>
             <div className="w-full px-2 sm:px-6 lg:px-8">
@@ -312,17 +317,19 @@ export default function Navbar() {
 
                   {/* ---- Desktop navigation dropdowns ---- */}
                   <div className="menuBar ml-6 hidden sm:flex sm:items-center sm:gap-6">
-                    {(
+                    {
                       // Authenticated: show grouped dropdowns
-                      navMenuGroups.filter((group) => group.role.includes(role)).map((group) => (
-                        <NavDropdown
-                          key={group.id}
-                          group={group}
-                          isAdmin={isAdmin}
-                          pathname={location.pathname}
-                        />
-                      ))
-                    )}
+                      navMenuGroups
+                        .filter((group) => group.role.includes(role))
+                        .map((group) => (
+                          <NavDropdown
+                            key={group.id}
+                            group={group}
+                            isAdmin={isAdmin}
+                            pathname={location.pathname}
+                          />
+                        ))
+                    }
                   </div>
                 </div>
 
@@ -332,7 +339,7 @@ export default function Navbar() {
                   {!isGuest && (
                     <Menu as="div" className="relative">
                       <Menu.Button
-                        className="relative rounded-full bg-white dark:bg-slate-800 p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        className="relative rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:bg-slate-800"
                         onClick={fetchNotifications}
                       >
                         <span className="sr-only">View notifications</span>
@@ -352,7 +359,7 @@ export default function Navbar() {
                         leaveFrom="transform opacity-100 scale-100"
                         leaveTo="transform opacity-0 scale-95"
                       >
-                        <Menu.Items className="absolute right-0 z-50 mt-2 w-80 origin-top-right rounded-md bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                        <Menu.Items className="absolute right-0 z-50 mt-2 w-80 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-slate-800">
                           <div className="border-b px-4 py-3">
                             <div className="flex items-center justify-between">
                               <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
@@ -378,25 +385,38 @@ export default function Navbar() {
                                 Không có thông báo nào
                               </div>
                             ) : (
-                              notifications.slice(0, 10).map((notification) => (
+                              notifications.map((notification) => (
                                 <Menu.Item key={notification.id}>
                                   {({ active }) => (
                                     <div
-                                      className={`cursor-pointer border-b px-4 py-3 text-sm ${active ? "bg-gray-50 dark:bg-slate-700" : ""
-                                        } ${!notification.isRead ? "bg-indigo-50/50 dark:bg-indigo-900/40" : ""}`}
+                                      className={`cursor-pointer border-b px-4 py-3 text-sm ${
+                                        active
+                                          ? "bg-gray-50 dark:bg-slate-700"
+                                          : ""
+                                      } ${
+                                        !notification.isRead
+                                          ? "bg-indigo-50/50 dark:bg-indigo-900/40"
+                                          : ""
+                                      }`}
                                     >
                                       <div className="flex items-start justify-between gap-2">
                                         <div className="min-w-0 flex-1">
                                           <p
-                                            className={`truncate text-sm ${!notification.isRead
-                                              ? "font-semibold text-gray-900 dark:text-slate-100"
-                                              : "text-gray-700 dark:text-slate-400"
-                                              }`}
+                                            className={`truncate text-sm ${
+                                              !notification.isRead
+                                                ? "font-semibold text-gray-900 dark:text-slate-100"
+                                                : "text-gray-700 dark:text-slate-400"
+                                            }`}
                                           >
                                             {notification.title}
                                           </p>
-                                          <p className={`mt-1 line-clamp-2 whitespace-pre-line text-xs ${!notification.isRead ? "text-gray-600 dark:text-slate-300" : "text-gray-500 dark:text-slate-500"
-                                            }`}>
+                                          <p
+                                            className={`mt-1 line-clamp-2 whitespace-pre-line text-xs ${
+                                              !notification.isRead
+                                                ? "text-gray-600 dark:text-slate-300"
+                                                : "text-gray-500 dark:text-slate-500"
+                                            }`}
+                                          >
                                             {notification.message}
                                           </p>
                                           <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
@@ -432,7 +452,7 @@ export default function Navbar() {
                   {isGuest && (
                     <button
                       type="button"
-                      className="rounded-full bg-white dark:bg-slate-800 p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                      className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:bg-slate-800"
                     >
                       <span className="sr-only">View notifications</span>
                       <BellIcon className="h-6 w-6" aria-hidden="true" />
@@ -444,11 +464,20 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setIsThemeOpen(!isThemeOpen)}
-                    className={`rounded-full bg-white dark:bg-slate-800 p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors ${isThemeOpen ? "!text-indigo-600 dark:!text-indigo-400" : ""}`}
+                    className={`rounded-full bg-white p-1 text-gray-400 transition-colors hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:bg-slate-800 ${
+                      isThemeOpen
+                        ? "!text-indigo-600 dark:!text-indigo-400"
+                        : ""
+                    }`}
                     title="Cài đặt giao diện"
                     aria-label="Mở cài đặt giao diện"
                   >
-                    <Cog6ToothIcon className={`h-6 w-6 transition-transform duration-500 ${isThemeOpen ? "rotate-90" : ""}`} aria-hidden="true" />
+                    <Cog6ToothIcon
+                      className={`h-6 w-6 transition-transform duration-500 ${
+                        isThemeOpen ? "rotate-90" : ""
+                      }`}
+                      aria-hidden="true"
+                    />
                   </button>
 
                   {/* Profile dropdown */}
@@ -469,14 +498,16 @@ export default function Navbar() {
                       leaveFrom="transform opacity-100 scale-100"
                       leaveTo="transform opacity-0 scale-95"
                     >
-                      <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white dark:bg-slate-800 py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-slate-800">
                         {localStorage.getItem("username") != "guest" && (
                           <Menu.Item>
                             {({ active }) => (
                               <>
                                 <p
                                   className={classNames(
-                                    active ? "bg-gray-100 dark:bg-slate-700/50" : "",
+                                    active
+                                      ? "bg-gray-100 dark:bg-slate-700/50"
+                                      : "",
                                     "block cursor-pointer px-4 py-2 text-sm text-gray-700 dark:text-slate-200",
                                   )}
                                   onClick={() => setIsOpenUpdatePassword(true)}
@@ -493,7 +524,9 @@ export default function Navbar() {
                               // href="#"
                               onClick={() => navigate("/logout")}
                               className={classNames(
-                                active ? "bg-gray-100 dark:bg-slate-700/50" : "",
+                                active
+                                  ? "bg-gray-100 dark:bg-slate-700/50"
+                                  : "",
                                 "block cursor-pointer px-4 py-2 text-sm text-gray-700 dark:text-slate-200",
                               )}
                             >
@@ -511,7 +544,7 @@ export default function Navbar() {
             {/* ---- Mobile navigation ---- */}
             <Disclosure.Panel className="sm:hidden">
               <div className="space-y-1 pb-4 pt-2">
-                {(
+                {
                   // Authenticated: show grouped collapsible sections
                   navMenuGroups.map((group) => (
                     <MobileNavGroup
@@ -522,7 +555,7 @@ export default function Navbar() {
                       closeMobileMenu={() => close()}
                     />
                   ))
-                )}
+                }
               </div>
             </Disclosure.Panel>
           </>

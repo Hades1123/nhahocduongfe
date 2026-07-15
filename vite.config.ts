@@ -26,5 +26,13 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: [{ find: "@", replacement: path.resolve(__dirname, "src") }],
     },
+    server: {
+      proxy: {
+        "/api": {
+          target: "http://localhost:8081",
+          changeOrigin: true,
+        },
+      },
+    },
   };
 });

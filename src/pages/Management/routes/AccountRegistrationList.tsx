@@ -18,6 +18,7 @@ import { DatePicker, DateRangePicker } from "rsuite";
 import moment from "moment";
 import { userApi } from "@/api/userApi";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { SSE_NOTIFICATION_EVENT } from "@/hooks/useNotificationSSE";
 
 const accountTypeOptions = [
   { value: null, label: "Tất cả" },
@@ -101,6 +102,23 @@ const AccountRegistrationList = () => {
   useEffect(() => {
     fetchRegistrations();
   }, [reFetching, fetchRegistrations]);
+
+  // Auto-refetch when a new SSE notification arrives (new user registered)
+  useEffect(() => {
+    let debounceTimer: ReturnType<typeof setTimeout>;
+    const handleNewNotification = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        console.log("[AccountRegistrationList] SSE notification — refetching");
+        fetchRegistrations();
+      }, 1000);
+    };
+    window.addEventListener(SSE_NOTIFICATION_EVENT, handleNewNotification);
+    return () => {
+      clearTimeout(debounceTimer);
+      window.removeEventListener(SSE_NOTIFICATION_EVENT, handleNewNotification);
+    };
+  }, [fetchRegistrations]);
 
   // Filter + paginate locally
   useEffect(() => {
@@ -376,8 +394,8 @@ const AccountRegistrationList = () => {
           aria-current="page"
           className={
             curPage === i + 1
-              ? "relative z-10 inline-flex items-center bg-indigo-600 dark:bg-indigo-500 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              : "relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 dark:text-slate-200 ring-1 ring-inset ring-gray-300 dark:ring-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 focus:z-20 focus:outline-offset-0"
+              ? "relative z-10 inline-flex items-center bg-indigo-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500"
+              : "relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 dark:text-slate-200 dark:ring-slate-600 dark:hover:bg-slate-700"
           }
         >
           {i + 1}
@@ -457,7 +475,7 @@ const AccountRegistrationList = () => {
               onClick={() =>
                 curPage === 1 ? {} : setCurPage((old) => old - 1)
               }
-              className="relative inline-flex items-center rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700"
+              className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
             >
               Previous
             </a>
@@ -465,7 +483,7 @@ const AccountRegistrationList = () => {
               onClick={() =>
                 curPage === totalPage ? {} : setCurPage((old) => old + 1)
               }
-              className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700"
+              className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
             >
               Next
             </a>
