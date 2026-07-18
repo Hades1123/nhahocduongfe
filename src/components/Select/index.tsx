@@ -102,7 +102,7 @@ function Select<T>({
           {label}
           {required && <span className="text-red-500">*</span>}
         </Listbox.Label>
-        <Listbox.Button className="relative min-h-[36px] w-full cursor-default rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 dark:border-slate-700 dark:bg-slate-800 sm:text-sm">
+        <Listbox.Button className={twMerge("relative min-h-[36px] w-full cursor-default rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 dark:border-slate-700 dark:bg-slate-800 sm:text-sm", disabled && "cursor-not-allowed opacity-50 bg-gray-100 dark:bg-slate-900")}>
           <span className="flex flex-wrap gap-1">
             {renderSelected(value ?? null)}
           </span>

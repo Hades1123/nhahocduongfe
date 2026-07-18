@@ -15,9 +15,15 @@ const RadioButton = ({
   value,
   onClick,
   error,
-  defaultChecked = false,
-  checked = false,
+  defaultChecked,
+  checked,
 }: Props) => {
+  // Build props conditionally to avoid passing both checked and defaultChecked
+  // if they aren't explicitly provided by the parent.
+  const inputProps: any = {};
+  if (checked !== undefined) inputProps.checked = checked;
+  if (defaultChecked !== undefined) inputProps.defaultChecked = defaultChecked;
+
   return (
     <div className="flex items-center">
       <input
@@ -26,9 +32,9 @@ const RadioButton = ({
         value={value}
         type="radio"
         onClick={onClick}
-        defaultChecked={defaultChecked}
+        onChange={onClick || (() => {})} // Prevents the read-only warning
+        {...inputProps}
         className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
-        checked={checked}
       />
       <label
         htmlFor={id}

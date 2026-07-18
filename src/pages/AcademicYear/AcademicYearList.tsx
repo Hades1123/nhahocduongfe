@@ -159,12 +159,12 @@ const AcademicYearList = () => {
   }));
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       {/* ── Bảng năm học ── */}
       <Card>
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
           <h2 className="text-xl font-bold">Quản lý năm học</h2>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2">
             <Button variants="contained" onClick={handleAdd}>
               + Thêm năm học
             </Button>
@@ -191,9 +191,9 @@ const AcademicYearList = () => {
           ) : (
             <div className="space-y-4">
               {history.map((session: any) => (
-                <div key={session.sessionId} className="border rounded-lg p-4 bg-gray-50">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
+                <div key={session.sessionId} className="border rounded-lg p-3 sm:p-4 bg-gray-50">
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-700">
                           {session.action}
@@ -216,7 +216,7 @@ const AcademicYearList = () => {
                     <Button
                       variants="outlined"
                       onClick={() => handleRollback(session.sessionId)}
-                      className="flex-shrink-0 ml-4"
+                      className="flex-shrink-0"
                     >
                       <ArrowUturnLeftIcon className="w-4 h-4 mr-1" />
                       Khôi phục

@@ -95,7 +95,9 @@ const Dashboard = (props: Props) => {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button onClick={() => reportApi.downloadAllSchoolsExcel()}>
+          <Button
+            onClick={() => reportApi.downloadAllSchoolsExcel()}
+          >
             Xuất Excel Tổng Hợp
           </Button>
           <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-600 shadow-sm">

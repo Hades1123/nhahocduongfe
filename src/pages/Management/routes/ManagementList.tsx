@@ -1,5 +1,5 @@
 import { api } from "@/api/api";
-import { reportApi } from "@/api/reportApi";
+import { reportApi } from "@/api/reportApi"
 import { TableColumn } from "@/components/Table/type";
 import {
   PencilSquareIcon,
@@ -314,8 +314,10 @@ const ManagementList = (props: Props) => {
                 />
                 <Button onClick={handleSearch}>Tìm kiếm</Button>
               </div>
-              <div className="flex gap-3 sm:justify-end">
-                <Button onClick={() => reportApi.downloadAllSchoolsExcel()}>
+              <div className="flex justify-end gap-3">
+                <Button
+                  onClick={() => reportApi.downloadAllSchoolsExcel()}
+                >
                   Xuất báo cáo tổng hợp
                 </Button>
                 <Button

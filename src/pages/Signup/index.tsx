@@ -312,6 +312,7 @@ const Signup = () => {
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   name="username"
+                  autoComplete="username"
                   error={(formik.touched.username && formik.errors.username) || undefined}
                 />
 
@@ -398,6 +399,7 @@ const Signup = () => {
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   name="password"
+                  autoComplete="new-password"
                   error={(formik.touched.password && formik.errors.password) || undefined}
                 />
 
@@ -425,6 +427,7 @@ const Signup = () => {
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   name="rePassword"
+                  autoComplete="new-password"
                   error={(formik.touched.rePassword && formik.errors.rePassword) || undefined}
                 />
 

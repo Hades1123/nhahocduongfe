@@ -109,6 +109,7 @@ const Login = () => {
               value={formik.values.username}
               onChange={formik.handleChange}
               name="username"
+              autoComplete="username"
               error={formik.errors.username}
             />
 
@@ -135,6 +136,7 @@ const Login = () => {
               value={formik.values.password}
               onChange={formik.handleChange}
               name="password"
+              autoComplete="current-password"
               error={formik.errors.password}
             />
             <div className="flex items-center justify-between px-1">

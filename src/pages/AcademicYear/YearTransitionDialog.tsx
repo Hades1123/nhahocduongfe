@@ -99,7 +99,7 @@ const YearTransitionDialog = ({ open, onClose, onSuccess }: Props) => {
 
   return (
     <Modal isOpen={open} onClose={onClose} title="Chuyển đổi năm học mới">
-      <div className="flex flex-col gap-4 p-4 min-w-[500px]">
+      <div className="flex flex-col gap-4 p-2 sm:p-4 w-full sm:min-w-[480px] sm:max-w-[560px]">
         {/* Current year info */}
         <div className="bg-blue-50 p-3 rounded-lg">
           <p className="text-sm text-blue-600 font-medium">Năm học hiện tại</p>
@@ -114,7 +114,7 @@ const YearTransitionDialog = ({ open, onClose, onSuccess }: Props) => {
           <label className="block text-sm font-medium mb-1">Tên năm học mới *</label>
           <Input value={newYearName} onChange={e => setNewYearName(e.target.value)} placeholder="VD: 2026-2027" />
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-medium mb-1">Ngày bắt đầu</label>
             <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
@@ -168,13 +168,11 @@ const YearTransitionDialog = ({ open, onClose, onSuccess }: Props) => {
         )}
 
         {/* Actions */}
-        <div className="flex justify-between mt-4">
-          <div className="flex gap-2">
-            <Button variants="outlined" onClick={handleValidate} isDisabled={validating}>
-              {validating ? "Đang kiểm tra..." : "🔍 Kiểm tra trước"}
-            </Button>
-          </div>
-          <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row justify-between gap-3 mt-4">
+          <Button variants="outlined" onClick={handleValidate} isDisabled={validating}>
+            {validating ? "Đang kiểm tra..." : "🔍 Kiểm tra trước"}
+          </Button>
+          <div className="flex gap-2 justify-end">
             <Button variants="outlined" onClick={onClose}>Đóng</Button>
             <Button variants="contained" onClick={handleTransition} isDisabled={processing}>
               {processing ? "Đang xử lý..." : "🚀 Chuyển năm học"}
