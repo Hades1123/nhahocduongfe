@@ -18,7 +18,10 @@ import { DatePicker, DateRangePicker } from "rsuite";
 import moment from "moment";
 import { userApi } from "@/api/userApi";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { SSE_NOTIFICATION_EVENT } from "@/hooks/useNotificationSSE";
+import {
+  SSE_NOTIFICATION_EVENT,
+  SSE_NOTIFICATION_TYPE,
+} from "@/hooks/useNotificationSSE";
 
 const accountTypeOptions = [
   { value: null, label: "Tất cả" },
@@ -81,7 +84,6 @@ const AccountRegistrationList = () => {
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
 
-  const [reFetching, setReFetching] = useState<boolean>(false);
   const itemsPerPage = 10;
   const [tableLoading, setTableLoading] = useState<boolean>(false);
   // Fetch waiting users from API
@@ -101,15 +103,19 @@ const AccountRegistrationList = () => {
 
   useEffect(() => {
     fetchRegistrations();
-  }, [reFetching, fetchRegistrations]);
+  }, [fetchRegistrations]);
 
-  // Auto-refetch when a new SSE notification arrives (new user registered)
+  // Auto-refetch when a new REGISTRATION SSE notification arrives
   useEffect(() => {
     let debounceTimer: ReturnType<typeof setTimeout>;
-    const handleNewNotification = () => {
+    const handleNewNotification = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      // Only refetch for registration-related notifications
+      if (detail?.type && detail.type !== SSE_NOTIFICATION_TYPE.REGISTRATION) return;
+
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        console.log("[AccountRegistrationList] SSE notification — refetching");
+        setCurPage(1); // reset to first page so new entry is visible
         fetchRegistrations();
       }, 1000);
     };
@@ -240,7 +246,7 @@ const AccountRegistrationList = () => {
             Swal.fire({
               icon: "success",
               title: "Duyệt tài khoản thành công!",
-            }).then(() => setReFetching((prev) => !prev));
+            }).then(() => fetchRegistrations());
           })
           .catch(() => {
             Swal.fire({
@@ -272,7 +278,7 @@ const AccountRegistrationList = () => {
             Swal.fire({
               icon: "success",
               title: "Từ chối và xóa tài khoản thành công!",
-            }).then(() => setReFetching((prev) => !prev));
+            }).then(() => fetchRegistrations());
           })
           .catch(() => {
             Swal.fire({
@@ -313,35 +319,10 @@ const AccountRegistrationList = () => {
   };
 
   const getAccountType = (data: any): string => {
-    const roleList = data.roleList || [];
-    if (roleList.length === 0) {
-      // Fallback: nếu có organization thì đoán là Trường học
-      if (data.organization?.name) return "Trường học";
-      return "-";
-    }
-    // Kiểm tra role liên quan đến trường học (GUEST = Trường học)
-    const hasSchoolRole = roleList.some(
-      (r: any) =>
-        r.code?.toUpperCase() === "GUEST" ||
-        r.code?.toUpperCase() === "SCHOOL" ||
-        r.name?.toLowerCase().includes("trường") ||
-        r.name?.toLowerCase().includes("school"),
-    );
-    // Kiểm tra role liên quan đến bác sĩ / nha sĩ
-    const hasDoctorRole = roleList.some(
-      (r: any) =>
-        r.code?.toUpperCase() === "DOCTOR" ||
-        r.code?.toUpperCase() === "DENTIST" ||
-        r.name?.toLowerCase().includes("bác sĩ") ||
-        r.name?.toLowerCase().includes("nha sĩ") ||
-        r.name?.toLowerCase().includes("nha khoa") ||
-        r.name?.toLowerCase().includes("doctor") ||
-        r.name?.toLowerCase().includes("dentist"),
-    );
-    if (hasSchoolRole) return "Trường học";
-    if (hasDoctorRole) return "Bác sĩ";
-    // Nếu không match pattern nào, hiển thị tên role đầu tiên
-    return roleList[0]?.name || "-";
+    const key = getAccountTypeKey(data);
+    if (key === "school") return "Trường học";
+    if (key === "doctor") return "Bác sĩ";
+    return data.roleList?.[0]?.name || "-";
   };
 
   const formatDate = (dateStr: string | null | undefined) => {

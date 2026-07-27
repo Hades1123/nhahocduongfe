@@ -234,10 +234,10 @@ export default function Navbar() {
     }
   };
 
-  // SSE: real-time unread count
+  // SSE: real-time unread count update
   useNotificationSSE({
     onNotification: () => {
-      setUnreadCount((prev) => prev + 1);
+      fetchUnreadCount();
     },
     enabled: !isGuest,
   });

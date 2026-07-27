@@ -26,4 +26,8 @@ export const notificationApi = {
   /** Đánh dấu tất cả thông báo đã đọc */
   markAllAsRead: () =>
     api.put("/api/notifications/read-all"),
+
+  /** Tạo ticket ngắn hạn để kết nối SSE */
+  createSseTicket: () =>
+    api.post<{ ticket: string }>("/api/sse/ticket").then((res) => res.data.ticket),
 };
