@@ -18,6 +18,10 @@ import { DatePicker, DateRangePicker } from "rsuite";
 import moment from "moment";
 import { userApi } from "@/api/userApi";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import {
+  SSE_NOTIFICATION_EVENT,
+  SSE_NOTIFICATION_TYPE,
+} from "@/hooks/useNotificationSSE";
 
 const accountTypeOptions = [
   { value: null, label: "Tất cả" },
@@ -80,7 +84,6 @@ const AccountRegistrationList = () => {
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
 
-  const [reFetching, setReFetching] = useState<boolean>(false);
   const itemsPerPage = 10;
   const [tableLoading, setTableLoading] = useState<boolean>(false);
   // Fetch waiting users from API
@@ -100,7 +103,28 @@ const AccountRegistrationList = () => {
 
   useEffect(() => {
     fetchRegistrations();
-  }, [reFetching, fetchRegistrations]);
+  }, [fetchRegistrations]);
+
+  // Auto-refetch when a new REGISTRATION SSE notification arrives
+  useEffect(() => {
+    let debounceTimer: ReturnType<typeof setTimeout>;
+    const handleNewNotification = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      // Only refetch for registration-related notifications
+      if (detail?.type && detail.type !== SSE_NOTIFICATION_TYPE.REGISTRATION) return;
+
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        setCurPage(1); // reset to first page so new entry is visible
+        fetchRegistrations();
+      }, 1000);
+    };
+    window.addEventListener(SSE_NOTIFICATION_EVENT, handleNewNotification);
+    return () => {
+      clearTimeout(debounceTimer);
+      window.removeEventListener(SSE_NOTIFICATION_EVENT, handleNewNotification);
+    };
+  }, [fetchRegistrations]);
 
   // Filter + paginate locally
   useEffect(() => {
@@ -222,7 +246,7 @@ const AccountRegistrationList = () => {
             Swal.fire({
               icon: "success",
               title: "Duyệt tài khoản thành công!",
-            }).then(() => setReFetching((prev) => !prev));
+            }).then(() => fetchRegistrations());
           })
           .catch(() => {
             Swal.fire({
@@ -254,7 +278,7 @@ const AccountRegistrationList = () => {
             Swal.fire({
               icon: "success",
               title: "Từ chối và xóa tài khoản thành công!",
-            }).then(() => setReFetching((prev) => !prev));
+            }).then(() => fetchRegistrations());
           })
           .catch(() => {
             Swal.fire({
@@ -295,35 +319,10 @@ const AccountRegistrationList = () => {
   };
 
   const getAccountType = (data: any): string => {
-    const roleList = data.roleList || [];
-    if (roleList.length === 0) {
-      // Fallback: nếu có organization thì đoán là Trường học
-      if (data.organization?.name) return "Trường học";
-      return "-";
-    }
-    // Kiểm tra role liên quan đến trường học (GUEST = Trường học)
-    const hasSchoolRole = roleList.some(
-      (r: any) =>
-        r.code?.toUpperCase() === "GUEST" ||
-        r.code?.toUpperCase() === "SCHOOL" ||
-        r.name?.toLowerCase().includes("trường") ||
-        r.name?.toLowerCase().includes("school"),
-    );
-    // Kiểm tra role liên quan đến bác sĩ / nha sĩ
-    const hasDoctorRole = roleList.some(
-      (r: any) =>
-        r.code?.toUpperCase() === "DOCTOR" ||
-        r.code?.toUpperCase() === "DENTIST" ||
-        r.name?.toLowerCase().includes("bác sĩ") ||
-        r.name?.toLowerCase().includes("nha sĩ") ||
-        r.name?.toLowerCase().includes("nha khoa") ||
-        r.name?.toLowerCase().includes("doctor") ||
-        r.name?.toLowerCase().includes("dentist"),
-    );
-    if (hasSchoolRole) return "Trường học";
-    if (hasDoctorRole) return "Bác sĩ";
-    // Nếu không match pattern nào, hiển thị tên role đầu tiên
-    return roleList[0]?.name || "-";
+    const key = getAccountTypeKey(data);
+    if (key === "school") return "Trường học";
+    if (key === "doctor") return "Bác sĩ";
+    return data.roleList?.[0]?.name || "-";
   };
 
   const formatDate = (dateStr: string | null | undefined) => {
@@ -376,8 +375,8 @@ const AccountRegistrationList = () => {
           aria-current="page"
           className={
             curPage === i + 1
-              ? "relative z-10 inline-flex items-center bg-indigo-600 dark:bg-indigo-500 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              : "relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 dark:text-slate-200 ring-1 ring-inset ring-gray-300 dark:ring-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 focus:z-20 focus:outline-offset-0"
+              ? "relative z-10 inline-flex items-center bg-indigo-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500"
+              : "relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 dark:text-slate-200 dark:ring-slate-600 dark:hover:bg-slate-700"
           }
         >
           {i + 1}
@@ -457,7 +456,7 @@ const AccountRegistrationList = () => {
               onClick={() =>
                 curPage === 1 ? {} : setCurPage((old) => old - 1)
               }
-              className="relative inline-flex items-center rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700"
+              className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
             >
               Previous
             </a>
@@ -465,7 +464,7 @@ const AccountRegistrationList = () => {
               onClick={() =>
                 curPage === totalPage ? {} : setCurPage((old) => old + 1)
               }
-              className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700"
+              className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
             >
               Next
             </a>
