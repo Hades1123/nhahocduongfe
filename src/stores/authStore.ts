@@ -5,41 +5,64 @@ import jwt_decode from "jwt-decode";
 import { isAxiosError } from "axios";
 
 type AuthStore = {
+  accessToken: string | null;
+  username: string | null;
   isAuthenticated: boolean;
+  isBootstrapping: boolean;
   login: (username: string, password: string) => Promise<void>;
   guestLogin: () => Promise<void>;
   logout: () => Promise<void>;
+  initializeAuth: () => Promise<void>;
+  setAccessToken: (token: string | null) => void;
 };
 
-const checkAuthStatus = () => {
-  const accessToken = localStorage.getItem("accessToken");
-  return !!accessToken;
+type TokenResponse = {
+  accessToken?: string;
+  token?: string;
 };
 
-const setAuthStatus = (isAuthenticated: boolean, accessToken?: string) => {
-  useAuthStore.setState({ isAuthenticated });
+type JwtClaims = {
+  username?: string;
+};
 
-  if (isAuthenticated && accessToken) {
-    localStorage.setItem("accessToken", accessToken);
+const setAuthSession = (
+  accessToken: string | null,
+  username?: string | null,
+) => {
+  useAuthStore.setState({
+    accessToken,
+    username: username ?? null,
+    isAuthenticated: !!accessToken,
+  });
+};
+
+const storeTokens = (responseData: TokenResponse) => {
+  const accessToken = responseData?.accessToken ?? responseData?.token ?? "";
+
+  if (accessToken) {
+    setAuthSession(accessToken);
   }
+
+  return accessToken;
 };
 
-const useAuthStore = create<AuthStore, any>(
+const useAuthStore = create<AuthStore>()(
   devtools((set) => ({
-    isAuthenticated: checkAuthStatus(),
+    accessToken: null,
+    username: null,
+    isAuthenticated: false,
+    isBootstrapping: false,
+    setAccessToken: (token: string | null) => setAuthSession(token),
     login: async (username: string, password: string) => {
       try {
         const response = await api.post("/api/auth/login", {
           username,
           password,
         });
-        const token = response.data?.token;
-        const decode: any = jwt_decode(token);
-        const { username: userName } = decode || {};
-        set({ isAuthenticated: true }, false, "useAuthStore/login");
-        setAuthStatus(true, token);
-
-        localStorage.setItem("username", userName);
+        const token = storeTokens(response.data);
+        const decode = jwt_decode<JwtClaims>(token);
+        const userName = decode?.username ?? null;
+        setAuthSession(token, userName);
       } catch (error) {
         if (isAxiosError(error)) {
           throw new Error(error.response?.data?.error || "Đăng nhập thất bại");
@@ -51,13 +74,10 @@ const useAuthStore = create<AuthStore, any>(
     guestLogin: async () => {
       try {
         const response = await api.post("/api/auth/guest-login");
-        const token = response.data?.token;
-        const decode: any = jwt_decode(token);
-        const { username: userName } = decode || {};
-        set({ isAuthenticated: true }, false, "useAuthStore/guestLogin");
-        setAuthStatus(true, token);
-
-        localStorage.setItem("username", userName);
+        const token = storeTokens(response.data);
+        const decode = jwt_decode<JwtClaims>(token);
+        const userName = decode?.username ?? null;
+        setAuthSession(token, userName);
       } catch (error) {
         if (isAxiosError(error)) {
           throw new Error(error.response?.data?.error || "Đăng nhập thất bại");
@@ -73,14 +93,29 @@ const useAuthStore = create<AuthStore, any>(
       } catch (e) {
         // Bỏ qua lỗi, vẫn xóa token client
       }
-      set({ isAuthenticated: false }, false, "useAuthStore/logout");
-      setAuthStatus(false);
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("username");
+      setAuthSession(null, null);
+    },
+    initializeAuth: async () => {
+      set({ isBootstrapping: true }, false, "useAuthStore/initializeAuth:start");
+
+      try {
+        const response = await api.post("/api/auth/refresh");
+        const token = storeTokens(response.data);
+
+        if (token) {
+          const decode = jwt_decode<JwtClaims>(token);
+          setAuthSession(token, decode?.username ?? null);
+          return;
+        }
+
+        setAuthSession(null, null);
+      } catch (error) {
+        setAuthSession(null, null);
+      } finally {
+        set({ isBootstrapping: false }, false, "useAuthStore/initializeAuth:end");
+      }
     },
   })),
 );
-
-setAuthStatus(checkAuthStatus());
 
 export default useAuthStore;

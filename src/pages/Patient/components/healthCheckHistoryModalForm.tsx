@@ -415,7 +415,7 @@ const HealthCheckModal = (props: Props) => {
                     <Button
                       onClick={(e) => {
                         e.stopPropagation();
-                        reportApi.downloadExamReportPdf(row.patientId || id);
+                        reportApi.downloadExamReportPdf(row.id);
                       }}
                     >
                       Xuất PDF

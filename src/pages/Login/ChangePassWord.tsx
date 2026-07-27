@@ -7,6 +7,7 @@ import { decodeJwt } from "@/api/api";
 import { userApi } from "@/api/userApi";
 import Swal from "sweetalert2";
 import * as Yup from "yup";
+import useAuthStore from "@/stores/authStore";
 
 interface Props {
   onSuccess?: () => void;
@@ -29,7 +30,7 @@ const ChangePasswordForm = ({ onSuccess }: Props) => {
   // Lấy thông tin user hiện tại khi mở Modal
   useEffect(() => {
     const fetchCurrentUser = async () => {
-      const token = localStorage.getItem("accessToken");
+      const token = useAuthStore.getState().accessToken;
       if (!token) return;
 
       try {

@@ -1,7 +1,5 @@
 import useAuthStore from "@/stores/authStore";
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from "axios";
-import { API_PROVINCE } from "./middleware";
-import moment from "moment";
 
 export const decodeJwt = (token: string) => {
   if (!token) return null;
@@ -19,32 +17,22 @@ export const decodeJwt = (token: string) => {
 // const API_URL = "https://nhahocduong.gpmn.net/";
 const API_URL = import.meta.env.VITE_API_URL;
 
-const getToken = async () => {
-  const timeClear = 5; // as minutes
-  const timeNow = moment();
-  //get Token from user info
-  const accessToken = localStorage.getItem("token");
-  if (!accessToken) {
-    // Logout() // function logout user
-    return "";
-  }
-  //access token get from API login
-  const expiredTokenAPI = decodeJwt(accessToken)?.exp;
-  const isCountExpiredAPITime = moment
-    .duration(moment.unix(expiredTokenAPI ?? 0).diff(timeNow))
-    .asMinutes();
-  if (isCountExpiredAPITime > timeClear) {
-    return `${accessToken}`;
-  } else {
-    // Logout() // function logout user
-    return "";
-  }
+type RetryableRequestConfig = InternalAxiosRequestConfig & {
+  _retry?: boolean;
 };
 
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,
   headers: {},
   timeout: 15000,
+  withCredentials: true,
+});
+
+const authApi: AxiosInstance = axios.create({
+  baseURL: API_URL,
+  headers: {},
+  timeout: 15000,
+  withCredentials: true,
 });
 
 // Add JWT token to headers
@@ -56,31 +44,65 @@ const setAuthToken = (token: string | null) => {
   }
 };
 
+const clearAuthSession = () => {
+  setAuthToken(null);
+  useAuthStore.setState({
+    accessToken: null,
+    username: null,
+    isAuthenticated: false,
+  });
+};
+
+const redirectToLogin = () => {
+  window.open("/login", "_self");
+};
+
+const isAuthEndpoint = (url?: string) =>
+  !!url &&
+  ["/api/auth/login", "/api/auth/guest-login", "/api/auth/refresh", "/api/auth/logout"].some(
+    (endpoint) => url.includes(endpoint),
+  );
+
+let refreshTokenRequest: Promise<string | null> | null = null;
+
+const refreshAccessToken = async () => {
+  if (!refreshTokenRequest) {
+    refreshTokenRequest = authApi
+      .post("/api/auth/refresh")
+      .then((response) => {
+        const nextAccessToken =
+          response.data?.accessToken ?? response.data?.token ?? "";
+
+        if (!nextAccessToken) {
+          return null;
+        }
+
+        useAuthStore.setState({
+          accessToken: nextAccessToken,
+          isAuthenticated: true,
+        });
+        setAuthToken(nextAccessToken);
+
+        return nextAccessToken;
+      })
+      .catch(() => null)
+      .finally(() => {
+        refreshTokenRequest = null;
+      });
+  }
+
+  return refreshTokenRequest;
+};
+
 // Add request interceptors
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const timeClear = 1; // as minutes
-    const timeNow = moment();
-    //get Token from user info
-    const accessToken = localStorage.getItem("accessToken");
+    const accessToken = useAuthStore.getState().accessToken;
     if (!accessToken) {
-      // window.open("/login", "_self");
       return config;
     }
-    //access token get from API login
-    const expiredTokenAPI = decodeJwt(accessToken)?.exp;
-    const isCountExpiredAPITime = moment
-      .duration(moment.unix(expiredTokenAPI ?? 0).diff(timeNow))
-      .asMinutes();
 
-    if (isCountExpiredAPITime > timeClear) {
-      config.headers["Authorization"] = `Bearer ${accessToken}`;
-    } else {
-      // config.headers["Authorization"] = `Bearer ${accessToken}`;
-      window.open("/logout", "_self");
-      // console.log("aa", isCountExpiredAPITime, timeClear);
-      return config;
-    }
+    config.headers["Authorization"] = `Bearer ${accessToken}`;
     return config;
   },
   (error) => {
@@ -93,15 +115,32 @@ api.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error) => {
-    // Nếu nhận 403 (tài khoản bị khóa / chưa duyệt) thì tự động logout
-    if (error.response?.status === 403) {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("username");
-      localStorage.removeItem("token");
-      window.open("/login", "_self");
+  async (error) => {
+    const originalRequest = error.config as RetryableRequestConfig | undefined;
+    const isForbidden = error.response?.status === 403;
+
+    if (
+      !isForbidden ||
+      !originalRequest ||
+      originalRequest._retry ||
+      isAuthEndpoint(originalRequest.url)
+    ) {
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
+
+    originalRequest._retry = true;
+
+    const newAccessToken = await refreshAccessToken();
+
+    if (!newAccessToken) {
+      clearAuthSession();
+      redirectToLogin();
+      return Promise.reject(error);
+    }
+
+    originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
+
+    return api(originalRequest);
   },
 );
 

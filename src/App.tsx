@@ -1,8 +1,10 @@
 import { QueryClient, QueryClientProvider } from "react-query";
+import { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
 import "./App.css";
 import { AppRoutes } from "./routes/AppRoutes";
 import { useTheme } from "./hooks/useTheme";
+import useAuthStore from "@/stores/authStore";
 
 /**
  * App — Root component.
@@ -13,10 +15,15 @@ import { useTheme } from "./hooks/useTheme";
  */
 function App() {
   const queryClient = new QueryClient();
+  const initializeAuth = useAuthStore((state) => state.initializeAuth);
 
   // Apply the stored theme immediately — this sets CSS vars on <html>
   // and adds/removes class="dark" for Tailwind dark mode.
   useTheme();
+
+  useEffect(() => {
+    void initializeAuth();
+  }, [initializeAuth]);
 
   return (
     <>

@@ -24,12 +24,13 @@ import {
   ReExamList,
 } from "@/pages/ExamCampaign/routes";
 import AcademicYearList from "@/pages/AcademicYear/AcademicYearList";
+import useAuthStore from '@/stores/authStore';
 
 const ProtectedRoutes = (): React.ReactElement<
   any,
   string | React.JSXElementConstructor<any>
 > | null => {
-  const token = localStorage.getItem("accessToken");
+  const token = useAuthStore((state) => state.accessToken);
   const guestRoutes: RouteObject[] = [
     {
       element: <Navigate to={slugs.login} />,
