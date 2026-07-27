@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { notificationApi } from "@/api/notificationApi";
+import useAuthStore from "@/stores/authStore";
 
 interface SSENotification {
   title: string;
@@ -36,14 +37,14 @@ export function useNotificationSSE({
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const mountedRef = useRef(true);
   const failureCountRef = useRef(0);
+  const accessToken = useAuthStore((state) => state.accessToken);
 
   useEffect(() => {
     onNotificationRef.current = onNotification;
   }, [onNotification]);
 
   const connect = useCallback(async () => {
-    const token = localStorage.getItem("accessToken");
-    if (!token || !enabled || !mountedRef.current) return;
+    if (!accessToken || !enabled || !mountedRef.current) return;
 
     // Don't create a new connection if one is already open
     if (eventSourceRef.current?.readyState === EventSource.OPEN) return;
@@ -51,20 +52,17 @@ export function useNotificationSSE({
     // Bail out after too many consecutive failures (e.g. expired token → 401 loop)
     if (failureCountRef.current >= MAX_CONSECUTIVE_FAILURES) return;
 
-    let sseUrl = `/api/sse/notifications?token=${token}`;
-
+    // Phải lấy được ticket mới kết nối — không fallback JWT token qua URL vì lý do bảo mật
+    let ticket: string | undefined;
     try {
-      const ticket = await notificationApi.createSseTicket();
-      if (ticket) {
-        sseUrl = `/api/sse/notifications?ticket=${ticket}`;
-      }
+      ticket = await notificationApi.createSseTicket();
     } catch (err) {
-      console.warn("[SSE] Ticket fetch failed, falling back to token query:", err);
+      console.error("[SSE] Không thể tạo ticket kết nối:", err);
     }
 
-    if (!mountedRef.current) return;
+    if (!ticket || !mountedRef.current) return;
 
-    const eventSource = new EventSource(sseUrl);
+    const eventSource = new EventSource(`/api/sse/notifications?ticket=${ticket}`);
     eventSourceRef.current = eventSource;
 
     eventSource.onopen = () => {
